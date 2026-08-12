@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>騎樓沒有路 NO WAY THROUGH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f6efdc; --paper:#fdfbf4;
+  --ink:#232733; --ink2:#4a4636; --mut:#8b8674;
+  --sun:#f2b705; --sunL:#ffcc33; --sunD:#c98f00;
+  --cone:#e8551f; --blood:#d94f43;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:#9db4c4;}
+body{
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#cfe0ea 0%,#9db4c4 100%);
+  user-select:none;
+}
+a{color:var(--cone);} a:hover{color:var(--blood);}
+#stage{
+  position:relative;
+  height:100dvh; width:100vw;
+  max-width:calc(100dvh * 256 / 456);
+  max-height:calc(100vw * 456 / 256);
+  aspect-ratio:256/456;
+  background:#000;
+  overflow:hidden;
+  box-shadow:0 0 0 3px #232733, 0 24px 60px rgba(20,30,40,.35);
+}
+canvas#game{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;display:block;}
+#scan{position:absolute;inset:0;pointer-events:none;z-index:40;background:repeating-linear-gradient(to bottom,rgba(30,40,60,.10) 0 1px,rgba(0,0,0,0) 1px 3px);opacity:.5;}
+#vig{position:absolute;inset:0;pointer-events:none;z-index:41;background:radial-gradient(130% 105% at 50% 42%,transparent 62%,rgba(30,40,60,.28) 100%);}
+.en{font-family:"Press Start 2P",monospace;font-weight:400;}
+
+/* ---------- HUD ---------- */
+#hud{position:absolute;top:0;left:0;right:0;z-index:30;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:10px 10px 0;pointer-events:none;}
+.tag{background:var(--paper);border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);
+  padding:8px 9px;display:flex;align-items:center;gap:7px;}
+.tag .tl{font-size:12px;font-weight:900;letter-spacing:2px;color:var(--ink2);}
+.tag b{font-family:"Press Start 2P",monospace;font-size:15px;font-weight:400;color:var(--ink);}
+#hudCoin b{color:#a06f00;}
+.coin-ic{flex:0 0 auto;width:15px;height:15px;background:var(--sun);border:2px solid var(--ink);box-shadow:inset -3px -3px 0 var(--sunD);}
+#mute{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:31;
+  background:var(--ink);border:3px solid var(--ink);box-shadow:0 4px 0 #10131c;color:var(--sun);
+  font-family:"Press Start 2P",monospace;font-size:8px;padding:10px 7px;cursor:pointer;}
+#hud.hide,#mute.hide,#pad.hide{display:none;}
+
+/* ---------- 操作區（警示導盲磚） ---------- */
+#pad{
+  position:absolute;left:0;right:0;bottom:0;height:112px;z-index:32;
+  background-color:#f5b90d;
+  background-image:radial-gradient(circle at 50% 50%, #d79b06 0 7px, rgba(0,0,0,0) 8px);
+  background-size:32px 32px;
+  border-top:5px solid var(--ink);
+  touch-action:none;cursor:grab;
+}
+#pad::before{content:"";position:absolute;top:0;left:0;right:0;height:7px;
+  background:repeating-linear-gradient(-45deg,var(--ink) 0 11px,var(--sun) 11px 22px);pointer-events:none;}
+#pad .lbl{position:absolute;top:13px;left:0;right:0;text-align:center;
+  font-size:13px;font-weight:900;color:var(--ink);letter-spacing:3px;pointer-events:none;}
+#pad .lbl .en{display:block;font-size:8px;letter-spacing:2px;color:#8f6a02;margin-top:5px;}
+#pad .rail{position:absolute;left:16px;right:16px;top:60px;height:16px;
+  background:#c98f00;border:3px solid var(--ink);box-shadow:inset 0 4px 0 rgba(35,39,51,.28);pointer-events:none;}
+#padHandle{
+  position:absolute;top:39px;width:60px;height:60px;margin-left:-30px;
+  background:var(--paper);border:4px solid var(--ink);box-shadow:0 6px 0 var(--ink);
+  pointer-events:none;display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:900;color:var(--ink);}
+#pad:active{cursor:grabbing;}
+#pad:active #padHandle{transform:translateY(4px);box-shadow:0 2px 0 var(--ink);}
+
+/* ---------- overlays ---------- */
+.screen{
+  position:absolute;inset:0;z-index:35;
+  display:flex;flex-direction:column;
+  padding:24px 20px 20px;
+  overflow-y:auto;
+  background:
+    repeating-linear-gradient(0deg, rgba(35,39,51,.05) 0 2px, transparent 2px 44px),
+    repeating-linear-gradient(90deg, rgba(35,39,51,.05) 0 2px, transparent 2px 44px),
+    linear-gradient(180deg,#f3ead0,#eadfbe);
+}
+.screen.hide{display:none;}
+.screen.trans{background:linear-gradient(180deg,rgba(20,26,40,.45) 0%,rgba(20,26,40,.06) 30%,rgba(20,26,40,.06) 52%,rgba(20,26,40,.58) 100%);}
+.spacer{flex:1;min-height:12px;}
+.kicker{font-family:"Press Start 2P",monospace;font-size:9px;letter-spacing:2px;color:var(--paper);
+  background:var(--ink);display:inline-flex;align-self:flex-start;align-items:center;
+  padding:8px 10px;margin-bottom:14px;box-shadow:4px 4px 0 rgba(28,32,45,.35);}
+.kicker i{font-style:normal;color:var(--sun);margin-right:8px;}
+.pageh{margin-bottom:14px;}
+.pageh h2{font-size:28px;font-weight:900;letter-spacing:10px;line-height:1;}
+.pageh-sub{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin-top:9px;letter-spacing:1px;line-height:1.7;}
+
+/* title */
+.signboard{background:var(--sunL);border:5px solid var(--ink);box-shadow:9px 9px 0 rgba(24,28,40,.82);
+  padding:22px 18px 18px;position:relative;margin-bottom:14px;}
+.signboard .bolt{position:absolute;width:11px;height:11px;background:var(--blood);border:3px solid var(--ink);}
+.bolt.tl{top:7px;left:7px;} .bolt.tr{top:7px;right:7px;} .bolt.bl{bottom:7px;left:7px;} .bolt.br{bottom:7px;right:7px;}
+h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(--ink);white-space:nowrap;}
+.t-en{display:inline-block;font-family:"Press Start 2P",monospace;font-size:12px;color:var(--sun);
+  background:var(--ink);padding:9px 10px;margin-top:13px;letter-spacing:1px;}
+.t-lead{background:rgba(253,251,244,.95);border:3px solid var(--ink);box-shadow:5px 5px 0 rgba(24,28,40,.55);
+  padding:12px 14px;font-size:15px;line-height:1.85;font-weight:700;color:var(--ink2);}
+.t-lead b{color:var(--ink);}
+.legend{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap;}
+.legend span{display:flex;align-items:center;gap:7px;background:rgba(253,251,244,.95);
+  border:3px solid var(--ink);box-shadow:3px 3px 0 rgba(24,28,40,.5);padding:7px 9px;font-size:12.5px;font-weight:900;}
+.sw{flex:0 0 auto;width:15px;height:15px;border:2px solid var(--ink);display:inline-block;}
+.trans .hint{color:#e9eef4;text-shadow:0 2px 0 rgba(16,20,32,.7);}
+.hint{font-size:12.5px;color:var(--mut);line-height:1.8;text-align:center;margin-top:2px;font-weight:800;letter-spacing:1px;}
+
+/* buttons */
+.btn{
+  display:block;width:100%;padding:17px 12px 15px;margin-bottom:16px;
+  background:var(--sun);color:var(--ink);border:4px solid var(--ink);box-shadow:0 7px 0 var(--ink);
+  cursor:pointer;font-family:inherit;font-size:21px;font-weight:900;letter-spacing:9px;text-indent:9px;
+}
+.btn .en{display:block;font-size:9px;letter-spacing:2px;margin-top:8px;color:rgba(35,39,51,.55);text-indent:0;}
+.btn:active{transform:translateY(5px);box-shadow:0 2px 0 var(--ink);}
+.btn.ghost{background:var(--paper);}
+.btn.small{font-size:15px;letter-spacing:4px;text-indent:4px;padding:13px 8px 11px;}
+.btn.small .en{font-size:8px;margin-top:6px;}
+.row{display:flex;gap:12px;margin-bottom:14px;}
+.row .btn{margin-bottom:0;}
+
+/* how to play */
+.rules{display:flex;flex-direction:column;gap:9px;margin-bottom:16px;}
+.rule{display:flex;gap:11px;align-items:center;background:var(--paper);border:3px solid var(--ink);
+  box-shadow:0 4px 0 rgba(35,39,51,.3);padding:9px 12px;font-size:14.5px;line-height:1.65;font-weight:700;color:var(--ink2);}
+.rule b{color:var(--cone);}
+.rule .ic{flex:0 0 auto;width:32px;height:32px;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:900;box-shadow:2px 2px 0 rgba(35,39,51,.3);}
+.ic.up{background:var(--paper);}
+.ic.no{background:var(--blood);color:#fff;}
+.ic.coin{background:var(--sun);}
+.sect{font-size:13px;font-weight:900;letter-spacing:3px;color:var(--cone);margin:2px 0 10px;}
+.diagram{position:relative;height:182px;flex:0 0 auto;border:4px solid var(--ink);box-shadow:0 6px 0 rgba(35,39,51,.32);
+  display:grid;grid-template-columns:36% 34px 1fr;margin-bottom:10px;overflow:hidden;background:#8f95a3;}
+.dg-arc{background:
+    repeating-linear-gradient(0deg, rgba(35,39,51,.10) 0 2px, transparent 2px 30px),
+    repeating-linear-gradient(90deg, rgba(35,39,51,.10) 0 2px, transparent 2px 30px),
+    #e6d8b2;
+  display:flex;align-items:center;padding-left:13px;}
+.dg-arc span{writing-mode:vertical-rl;letter-spacing:12px;font-weight:900;font-size:14px;color:#9c8f66;}
+.dg-kerb{display:flex;flex-direction:column;}
+.dg-kerb .k{flex:1;background:linear-gradient(90deg,#efeadb 0 60%,#d94f43 60%);border-top:2px solid rgba(35,39,51,.18);}
+.dg-kerb .k:first-child{border-top:0;}
+.dg-kerb .k.yes{background:
+    repeating-linear-gradient(0deg, transparent 0 9px, rgba(255,255,255,.9) 9px 13px) 58% 0/9px 100% no-repeat,
+    #ffcc33;
+  box-shadow:inset 0 0 0 3px var(--sunD);}
+.dg-road{position:relative;display:flex;align-items:center;justify-content:flex-end;padding-right:11px;}
+.dg-road::before{content:"";position:absolute;left:55%;top:0;bottom:0;width:4px;
+  background:repeating-linear-gradient(0deg,var(--sun) 0 15px,transparent 15px 28px);}
+.dg-road span{writing-mode:vertical-rl;letter-spacing:12px;font-weight:900;font-size:14px;color:#e2e6ec;}
+.dg-line{position:absolute;border-top:4px dotted;}
+.dg-line.ok{left:9%;right:96px;top:50%;border-color:#1f6b3e;}
+.dg-line.ok::before{content:"◀";position:absolute;left:-4px;top:-12px;font-size:14px;color:#1f6b3e;}
+.dg-line.no{left:calc(36% + 34px);right:96px;top:17%;border-color:var(--blood);}
+.dg-line.no::before{content:"✗";position:absolute;left:-9px;top:-14px;font-size:19px;font-weight:900;color:var(--blood);}
+.dg-you{position:absolute;right:52px;top:calc(33.5% - 17px);width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;background:#3f7fc8;border:3px solid var(--ink);
+  color:#fff;font-size:14px;font-weight:900;box-shadow:3px 3px 0 rgba(24,28,40,.45);}
+.dg-tag{position:absolute;left:calc(36% + 17px);transform:translate(-50%,0);font-size:11px;font-weight:900;
+  letter-spacing:1px;padding:4px 6px;border:2px solid var(--ink);box-shadow:2px 2px 0 rgba(24,28,40,.45);white-space:nowrap;}
+.dg-tag.ok{top:calc(50% + 12px);background:var(--sunL);}
+.dg-tag.no{top:calc(17% + 12px);background:var(--blood);color:#fff;}
+.dg-cap{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.dg-cap span{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;color:var(--ink2);}
+
+/* garage */
+.gar-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.gar-top .kicker{margin-bottom:0;}
+.wallet{display:flex;align-items:center;gap:9px;background:var(--ink);box-shadow:0 4px 0 #10131c;padding:9px 12px;}
+.wallet b{font-family:"Press Start 2P",monospace;font-size:13px;font-weight:400;color:var(--sun);}
+.cards{display:flex;flex-direction:column;gap:13px;margin-bottom:16px;}
+.card{display:flex;gap:10px;align-items:center;border:3px solid var(--ink);box-shadow:0 5px 0 rgba(35,39,51,.35);
+  background:var(--paper);padding:10px 12px;cursor:pointer;position:relative;}
+.card.sel{background:#fff3c4;box-shadow:0 5px 0 var(--ink);}
+.card.lock{background:#eee8d4;}
+.card.lock .thumb{filter:grayscale(.85) contrast(.92);}
+.thumb{flex:0 0 auto;width:66px;height:66px;border:3px solid var(--ink);background:#b9c6cf;display:flex;align-items:center;justify-content:center;}
+.thumb canvas{width:60px;height:60px;image-rendering:pixelated;display:block;}
+.card .info{flex:1;min-width:0;}
+.card .nm{font-size:16.5px;font-weight:900;letter-spacing:1px;white-space:nowrap;}
+.nm .mini{display:inline-block;margin-left:7px;font-style:normal;font-size:10px;font-weight:900;letter-spacing:1px;
+  color:var(--paper);background:#3f7fc8;padding:3px 6px;vertical-align:2px;}
+.spd{display:flex;align-items:center;gap:3px;margin:6px 0 5px;}
+.spd i{width:13px;height:9px;background:#ddd5ba;border:2px solid var(--ink);}
+.spd i.on{background:var(--sun);}
+.spd span{font-size:11px;font-weight:800;color:var(--mut);margin-left:6px;letter-spacing:1px;}
+.card .st{font-size:12.5px;color:var(--ink2);line-height:1.55;font-weight:500;}
+.card .pr{margin-left:auto;flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px;text-align:right;max-width:76px;}
+.tag-use{background:var(--ink);color:var(--sun);font-size:12px;font-weight:900;letter-spacing:2px;padding:6px 9px;}
+.tag-own{background:var(--paper);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);
+  font-size:12px;font-weight:900;letter-spacing:2px;padding:4px 8px;}
+.tag-price{font-family:"Press Start 2P",monospace;font-size:12px;color:#a06f00;}
+.pr small{font-size:10.5px;color:var(--mut);font-weight:800;}
+
+/* game over */
+.go-band{margin:-24px -20px 18px;flex:0 0 auto;
+  background:repeating-linear-gradient(-45deg,var(--ink) 0 16px,var(--sun) 16px 32px);
+  padding:13px 0;display:flex;justify-content:center;}
+.go-band span{font-family:"Press Start 2P",monospace;font-size:16px;color:var(--paper);background:var(--ink);
+  padding:11px 15px;letter-spacing:2px;border:3px solid var(--paper);box-shadow:0 4px 0 rgba(16,19,28,.6);}
+.result{border:4px solid var(--ink);box-shadow:0 8px 0 rgba(35,39,51,.42);background:var(--paper);
+  padding:17px 17px 15px;margin-bottom:13px;}
+.r-lab{font-size:12px;font-weight:900;letter-spacing:5px;color:var(--mut);margin-bottom:12px;}
+.r-lab .en{font-size:8px;color:#cdc5a9;margin-left:8px;letter-spacing:1px;}
+.bigtime{display:flex;align-items:baseline;font-family:"Press Start 2P",monospace;font-size:44px;color:var(--ink);text-shadow:4px 4px 0 var(--sun);line-height:1;white-space:nowrap;}
+.unit{font-family:"Noto Sans TC","PingFang TC",sans-serif;font-size:19px;color:var(--mut);margin-left:9px;font-weight:900;text-shadow:none;}
+.cause{display:inline-block;margin-top:16px;border:3px solid var(--blood);color:var(--blood);background:rgba(217,79,67,.07);
+  font-size:14.5px;font-weight:900;letter-spacing:2px;padding:7px 10px;transform:rotate(-2deg);}
+.cause::before{content:"✗ ";}
+.meta{display:flex;margin-top:16px;border-top:3px solid #eae2ca;padding-top:12px;}
+.meta>div{flex:1;font-size:11.5px;color:var(--mut);font-weight:900;letter-spacing:2px;}
+.meta>div+div{border-left:3px solid #eae2ca;padding-left:13px;}
+.meta b{display:block;font-family:"Press Start 2P",monospace;font-size:15px;color:var(--ink);margin-top:8px;font-weight:400;}
+.meta b.zh{font-family:inherit;font-weight:900;font-size:14px;letter-spacing:1px;}
+.factbox{border:3px solid var(--ink);box-shadow:0 5px 0 rgba(35,39,51,.3);background:var(--paper);margin-bottom:14px;}
+.f-tag{background:var(--sun);border-bottom:3px solid var(--ink);font-size:12px;font-weight:900;letter-spacing:3px;
+  padding:7px 12px;display:flex;align-items:center;gap:8px;}
+.f-tag::before{content:"";width:10px;height:10px;background:var(--blood);border:2px solid var(--ink);}
+.fact{font-size:14px;line-height:1.9;color:var(--ink2);padding:11px 13px;font-weight:500;}
+.fact b{color:var(--ink);font-weight:900;border-bottom:3px solid var(--sun);}
+
+#toast{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);z-index:60;
+  background:var(--ink);color:var(--paper);border:3px solid var(--sun);box-shadow:0 5px 0 rgba(16,20,32,.5);
+  padding:12px 16px;font-size:15px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;}
+#toast.on{opacity:1;}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="game"></canvas>
+  <div id="scan"></div><div id="vig"></div>
+
+  <div id="hud" class="hide">
+    <div class="tag" id="hudTime"><span class="tl">時間</span><b>0.0</b></div>
+    <div class="tag" id="hudCoin"><span class="coin-ic"></span><b>0</b></div>
+  </div>
+  <button id="mute" class="hide">♪ ON</button>
+
+  <div id="pad" class="hide">
+    <div class="lbl">◀　操作區・左右拖曳　▶</div>
+    <div class="rail"></div>
+    <div id="padHandle">↔</div>
+  </div>
+
+  <!-- TITLE -->
+  <div class="screen trans" id="scTitle">
+    <div class="kicker"><i>◤</i>TAIWAN STREET COMMUTE</div>
+    <div class="signboard">
+      <span class="bolt tl"></span><span class="bolt tr"></span><span class="bolt bl"></span><span class="bolt br"></span>
+      <h1>騎樓沒有路</h1>
+      <div class="t-en">NO WAY THROUGH</div>
+    </div>
+    <div class="t-lead">騎樓停滿機車，路緣沒有斜坡，車道上的人在按你喇叭。<b>——你能撐多久？</b></div>
+    <div class="spacer"></div>
+    <div class="legend">
+      <span><span class="sw" style="background:#ffcc33"></span>黃斜坡＝上下騎樓</span>
+      <span><span class="sw" style="background:#d94f43"></span>紅線＝過不去</span>
+    </div>
+    <button class="btn" id="btnStart">開始挑戰<span class="en">▶ PRESS START</span></button>
+    <div class="row">
+      <button class="btn ghost small" id="btnGarage">車庫<span class="en">GARAGE</span></button>
+      <button class="btn ghost small" id="btnHow">怎麼玩<span class="en">HOW TO PLAY</span></button>
+    </div>
+    <p class="hint">手機：下方黃色區左右拖曳　·　電腦：← →</p>
+  </div>
+
+  <!-- HOW -->
+  <div class="screen hide" id="scHow">
+    <div class="kicker"><i>?</i>HOW TO PLAY</div>
+    <div class="pageh"><h2>怎麼玩</h2></div>
+    <div class="rules">
+      <div class="rule"><span class="ic up">▲</span><div>街道自動前進，你只能<b>左右移動</b>。</div></div>
+      <div class="rule"><span class="ic no">✗</span><div>撞到任何東西——機車、紙箱、台階、來車——就結束。</div></div>
+      <div class="rule"><span class="ic coin">◎</span><div>金幣能解鎖角色，但金幣常常長在最危險的地方。</div></div>
+    </div>
+    <div class="sect">重點：怎麼上下騎樓？</div>
+    <div class="diagram">
+      <div class="dg-arc"><span>騎樓</span></div>
+      <div class="dg-kerb"><i class="k"></i><i class="k yes"></i><i class="k"></i></div>
+      <div class="dg-road"><span>車道</span></div>
+      <div class="dg-line no"></div>
+      <div class="dg-line ok"></div>
+      <div class="dg-you">你</div>
+      <div class="dg-tag no">紅線</div>
+      <div class="dg-tag ok">斜坡</div>
+    </div>
+    <div class="dg-cap">
+      <span><span class="sw" style="background:#ffcc33"></span>黃色斜坡＝唯一能上下騎樓的入口</span>
+      <span><span class="sw" style="background:#d94f43"></span>紅線路緣＝一道牆，過不去就是過不去</span>
+    </div>
+    <div class="factbox"><div class="f-tag">為什麼是這樣？</div><div class="fact">騎樓的高低差、被機車占滿的通道、路口沒有的緣石斜坡——這些不是遊戲設計，是每天的通勤路線。</div></div>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="btnHowBack">回標題<span class="en">BACK</span></button>
+  </div>
+
+  <!-- GARAGE -->
+  <div class="screen hide" id="scGarage">
+    <div class="gar-top">
+      <div class="kicker"><i>▣</i>GARAGE</div>
+      <div class="wallet"><span class="coin-ic"></span><b id="walletCoins">0</b></div>
+    </div>
+    <div class="pageh"><h2>車庫</h2><span class="pageh-sub">速度＝左右移動快慢。金幣不夠？上路再撿。</span></div>
+    <div class="cards" id="cardList"></div>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="btnGarageBack">回標題<span class="en">BACK</span></button>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="screen hide" id="scOver">
+    <div class="go-band"><span>GAME OVER</span></div>
+    <div class="result">
+      <div class="r-lab">存活時間<span class="en">SURVIVED</span></div>
+      <div class="bigtime"><span id="rTime">0.0</span><span class="unit">秒</span></div>
+      <div><span class="cause" id="causeTxt">你撞上了……</span></div>
+      <div class="meta">
+        <div>金幣<b id="rCoin">0</b></div>
+        <div>最佳<b id="rBest">0.0</b></div>
+        <div>角色<b id="rCar" class="zh">手推輪椅</b></div>
+      </div>
+    </div>
+    <div class="factbox"><div class="f-tag">無障礙小知識</div><div class="fact" id="factTxt"></div></div>
+    <div class="spacer"></div>
+    <button class="btn" id="btnAgain">再來一次<span class="en">▶ RETRY</span></button>
+    <div class="row">
+      <button class="btn ghost small" id="btnShare">分享成績<span class="en">SHARE</span></button>
+      <button class="btn ghost small" id="btnHome">車庫／首頁<span class="en">HOME</span></button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   騎樓沒有路 v0.3 — 物件放大一倍（sprite 以 2x 縮放繪製）
+   ══════════════════════════════════════════════════════════ */
+const W = 256, H = 456;
+const cvs = document.getElementById('game');
+const MAIN = cvs.getContext('2d');
+let ctx = MAIN;
+function useCtx(c){ ctx = c; }
+cvs.width = W; cvs.height = H; MAIN.imageSmoothingEnabled = false;
+
+/* ---------- 地圖分區（視野縮窄、物件加倍） ---------- */
+const Z = {
+  wallL:[0,8], arcL:[8,70], kerbL:[70,79],
+  road:[79,177], kerbR:[177,186], arcR:[186,248], wallR:[248,256]
+};
+const ROAD_MID = 128;
+const PLAYER_Y = 150;
+
+/* ---------- 調色盤（白天） ---------- */
+const C = {
+  asphalt:'#8f95a3', asphalt2:'#9ba1ae', crack:'#7f8593',
+  paintW:'#f7f4e6', paintY:'#e8a71c', red:'#d94f43',
+  tile:'#e6d8b2', tile2:'#d8caa1', tileLine:'#c6b78e',
+  kerbTop:'#efeadb', kerbFace:'#b2ad9c', kerbShadow:'rgba(40,45,60,.30)',
+  ramp:'#ffcc33', rampDark:'#d99a10',
+  roofA:['#b7c2d1','#d1b7b7','#bcd1b7','#d1cab7'],
+  roofEdge:'#8d99a9', vent:'#77828f', ventD:'#5d6673',
+  awn1:['#e8551f','#3f7fc8','#3f9b62','#c8443f'],
+  awn2:'#f6efdc',
+  skin:'#e8b58c', skinD:'#c08c66', hair:'#2b2018',
+  chair:'#4a5670', chairD:'#2c3242', wheel:'#1a1d26', wheelHub:'#c3ccdb',
+  shirt:'#3f7fc8', shirt2:'#2b5a94',
+  cane:'#ffffff', caneBand:'#d94f43',
+  coin:'#f2b705', coinD:'#b07d00', coinHi:'#ffe9a8',
+  glass:'#274058', glassL:'#3f6486',
+  moto:'#565c6c', motoD:'#343947',
+  wood:'#8a6234', box:'#c8955a', plant:'#3f9b62', pot:'#b0603c',
+  sign:'#f6efdc', signRed:'#d94f43',
+  shadow:'rgba(40,45,60,.22)'
+};
+
+/* ---------- 角色（世界尺寸＝2x） ---------- */
+const VEHICLES = [
+  {id:'manual', name:'手推輪椅',   speed:1.0, w:30,h:40, price:0,   desc:'最基本的一台。慢，但你熟悉它。'},
+  {id:'carer',  name:'看護推',     speed:1.25,w:30,h:40, price:120, desc:'有人幫你推，快一點——但路線不是你決定的。'},
+  {id:'blind',  name:'白手杖行人', speed:2.2, w:20,h:24, price:220, desc:'用白手杖步行。轉向最快、身形最小，但看不到來車。'},
+  {id:'power',  name:'電動輪椅',   speed:1.5, w:30,h:40, price:320, desc:'搖桿操作，反應靈敏。重，卡到路緣就真的卡住。'},
+  {id:'trike',  name:'三輪電動車', speed:1.8, w:30,h:48, price:650, desc:'跑得快，車身長，鑽騎樓比較吃力。'},
+  {id:'head',   name:'電動車頭',   speed:2.1, w:30,h:48, price:1200,desc:'外掛在輪椅前的動力頭。輪上最快的一台。'}
+];
+
+/* ---------- 存檔 ---------- */
+/* GitHub Pages 等一般瀏覽器環境沒有 window.storage，用 localStorage 相容 */
+if(!window.storage){
+  window.storage = {
+    async get(k){ const v = localStorage.getItem(k); return v===null ? null : {value:v}; },
+    async set(k,v){ localStorage.setItem(k, v); }
+  };
+}
+let save = {coins:0, best:0, owned:['manual'], current:'manual'};
+async function loadSave(){
+  try{
+    const r = await window.storage.get('wcgame:save');
+    if(r && r.value) save = Object.assign(save, JSON.parse(r.value));
+  }catch(e){}
+}
+async function writeSave(){
+  try{ await window.storage.set('wcgame:save', JSON.stringify(save)); }catch(e){}
+}
+
+/* ---------- 音效 ---------- */
+let AC=null, muted=false;
+function blip(freq, dur, type='square', vol=.06){
+  if(muted) return;
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+dur);
+    o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime+dur);
+  }catch(e){}
+}
+function crashSfx(){
+  if(muted) return;
+  blip(180,.12,'sawtooth',.09);
+  setTimeout(()=>blip(110,.22,'sawtooth',.08),90);
+  setTimeout(()=>blip(70,.35,'square',.06),200);
+}
+
+/* ══════════════ 遊戲狀態 ══════════════ */
+let state='title';
+let cam=0, scroll=112, t=0, coins=0;
+let player, obstacles, cars, coinsArr, kerbL, kerbR, chunks;
+let genY=0, carTimer=0, shake=0, deathCause='', flash=0;
+let particles=[];
+
+function vehicle(){ return VEHICLES.find(v=>v.id===save.current) || VEHICLES[0]; }
+
+function reset(){
+  cam=0; scroll=112; t=0; coins=0;
+  obstacles=[]; cars=[]; coinsArr=[]; kerbL=[]; kerbR=[]; chunks=[]; particles=[];
+  genY=0; carTimer=3.0; shake=0; flash=0; deathCause='';
+  const v = vehicle();
+  player={x:ROAD_MID+14, w:v.w, h:v.h, targetX:ROAD_MID+14};
+  while(genY < cam + H + 560) genChunk(genY < CHUNK*2);
+}
+
+/* ══════════════ 關卡生成 ══════════════ */
+const CHUNK = 320;
+function rnd(a,b){ return a + Math.random()*(b-a); }
+function ri(a,b){ return Math.floor(rnd(a,b+1)); }
+function chance(p){ return Math.random() < p; }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function ob(x,y,w,h,kind){ return {x,y,w,h,kind,seed:Math.random()}; }
+
+function genChunk(safe){
+  const y0 = genY;
+  const diff = Math.min(1, t/70);
+
+  chunks.push({y:y0, h:CHUNK, seedL:Math.random(), seedR:Math.random()});
+
+  const rampP = safe ? 0.5 : (0.30 - diff*0.09);
+  for(const side of ['L','R']){
+    const arr = side==='L' ? kerbL : kerbR;
+    for(let i=0;i<4;i++){
+      arr.push({y:y0 + i*CHUNK/4, h:CHUNK/4, open: chance(rampP)});
+    }
+  }
+
+  if(safe){ genY += CHUNK; return; }
+
+  for(const side of ['L','R']){
+    const zone = side==='L' ? Z.arcL : Z.arcR;
+    const [zx,zx2] = zone, zw = zx2-zx;
+    const kerbArr = side==='L' ? kerbL : kerbR;
+
+    let pillarY = -999;
+    if(chance(.75)){
+      const px = side==='L' ? zx2-18 : zx+2;   // 柱子在靠馬路側
+      pillarY = y0+rnd(24,96);
+      obstacles.push(ob(px, pillarY, 16, 16, 'pillar'));
+    }
+
+    if(chance(.10 + diff*.10)){
+      kerbArr[kerbArr.length-4].open = true;
+      kerbArr[kerbArr.length-3].open = true;
+      obstacles.push(ob(zx, y0+CHUNK*0.62, zw, 36, chance(.5)?'steps':'shopfront'));
+    }else{
+      const n = ri(1, 2 + Math.round(diff));
+      let lastY = -999;
+      for(let i=0;i<n;i++){
+        const y = y0 + rnd(20, CHUNK-64);
+        if(Math.abs(y-lastY) < 88) continue;
+        if(Math.abs(y-pillarY) < 68) continue;
+        lastY = y;
+        const kind = pick(['moto','moto','moto','box','plant','sign','table']);
+        const dim = {moto:[28,48],box:[24,24],plant:[20,20],sign:[28,18],table:[30,30]}[kind];
+        // 大物件貼牆或貼路緣（像真的停車），中間永遠留得下人
+        let x;
+        if(zw - dim[0] >= 38) x = rnd(zx+2, zx2-dim[0]-2);
+        else x = chance(.5) ? zx+2 : zx2-dim[0]-2;
+        obstacles.push(ob(x, y, dim[0], dim[1], kind));
+      }
+    }
+  }
+
+  if(chance(.22 + diff*.20)){
+    const kind = pick(['manhole','cone','illegal','illegal']);
+    const dim = {manhole:[30,30], cone:[20,24], illegal:[32,52]}[kind];
+    const nearEdge = chance(.6);
+    const x = nearEdge ? (chance(.5) ? Z.road[0]+4 : Z.road[1]-dim[0]-4)
+                       : rnd(Z.road[0]+8, Z.road[1]-dim[0]-8);
+    obstacles.push(ob(x, y0+rnd(24,CHUNK-76), dim[0], dim[1], kind));
+  }
+
+  const lanes = [
+    [Z.arcL[0]+12, Z.arcL[1]-16],
+    [Z.road[0]+12, ROAD_MID-14],
+    [ROAD_MID+8, Z.road[1]-16],
+    [Z.arcR[0]+12, Z.arcR[1]-16]
+  ];
+  const ln = lanes[ri(0,3)];
+  const cx = rnd(ln[0], ln[1]);
+  const cn = ri(3,4);
+  for(let i=0;i<cn;i++){
+    coinsArr.push({x:cx+Math.sin(i*.9)*10, y:y0+44+i*38, r:6, got:false});
+  }
+
+  genY += CHUNK;
+}
+
+/* ══════════════ 輸入 ══════════════ */
+const keys = {};
+addEventListener('keydown', e=>{
+  if(['ArrowLeft','ArrowRight','a','d','A','D',' '].includes(e.key)) e.preventDefault();
+  keys[e.key]=true;
+  if(e.key===' ' && state!=='play'){ const s=document.getElementById('scTitle'); if(!s.classList.contains('hide')) document.getElementById('btnStart').click(); }
+});
+addEventListener('keyup', e=>{ keys[e.key]=false; });
+
+const pad = document.getElementById('pad');
+const padHandle = document.getElementById('padHandle');
+let padActive=false, canvasDrag=null, canvasStartPX=null;
+
+function minPX(){ return Z.arcL[0]+2; }
+function maxPX(){ return Z.arcR[1]-player.w-2; }
+
+function padTo(clientX){
+  const r = pad.getBoundingClientRect();
+  const f = Math.max(0, Math.min(1, (clientX - r.left - 16) / (r.width - 32)));
+  player.targetX = minPX() + f * (maxPX() - minPX());
+}
+pad.addEventListener('pointerdown', e=>{
+  if(state!=='play') return;
+  padActive=true; pad.setPointerCapture(e.pointerId); padTo(e.clientX);
+});
+pad.addEventListener('pointermove', e=>{ if(padActive && state==='play') padTo(e.clientX); });
+pad.addEventListener('pointerup',   ()=>{ padActive=false; });
+pad.addEventListener('pointercancel',()=>{ padActive=false; });
+
+function pxScale(){ return cvs.getBoundingClientRect().width / W; }
+cvs.addEventListener('pointerdown', e=>{
+  if(state!=='play') return;
+  canvasDrag = e.clientX; canvasStartPX = player.x;
+});
+cvs.addEventListener('pointermove', e=>{
+  if(state!=='play' || canvasDrag===null) return;
+  const d = (e.clientX - canvasDrag) / pxScale() * 2.2;
+  player.targetX = canvasStartPX + d;
+});
+cvs.addEventListener('pointerup', ()=>{ canvasDrag=null; });
+cvs.addEventListener('pointercancel', ()=>{ canvasDrag=null; });
+
+/* ══════════════ 路緣通行判定 ══════════════ */
+function kerbBlocked(arr, y0, y1){
+  for(const s of arr){
+    if(s.y < y1 && s.y+s.h > y0 && !s.open) return true;
+  }
+  return false;
+}
+function moveX(nx){
+  const py0 = cam+PLAYER_Y, py1 = py0 + player.h;
+  const ox = player.x, ow = player.w;
+  nx = Math.max(minPX(), Math.min(maxPX(), nx));
+  const kl = Z.kerbL[1];
+  if(ox >= kl && nx < kl && kerbBlocked(kerbL, py0, py1)) nx = kl;
+  if(ox + ow <= Z.kerbL[0] && nx + ow > Z.kerbL[0] && kerbBlocked(kerbL, py0, py1)) nx = Z.kerbL[0]-ow;
+  const kr = Z.kerbR[0];
+  if(ox + ow <= kr && nx + ow > kr && kerbBlocked(kerbR, py0, py1)) nx = kr - ow;
+  if(ox >= Z.kerbR[1] && nx < Z.kerbR[1] && kerbBlocked(kerbR, py0, py1)) nx = Z.kerbR[1];
+  return nx;
+}
+
+/* ══════════════ 更新 ══════════════ */
+function update(dt){
+  t += dt;
+  scroll = 112 + Math.min(180, t*1.9);
+
+  const spd = 165 * vehicle().speed;
+  if(!padActive && canvasDrag===null){
+    let dir = 0;
+    if(keys.ArrowLeft||keys.a||keys.A) dir=-1;
+    if(keys.ArrowRight||keys.d||keys.D) dir=1;
+    player.targetX = player.x + dir*spd*dt*1.7;
+  }
+  const dx = player.targetX - player.x;
+  const step = Math.sign(dx)*Math.min(Math.abs(dx), spd*dt);
+  const nx = moveX(player.x + step);
+  if(Math.abs(nx - (player.x+step)) > 0.1 && chance(.12)) blip(90,.04,'square',.03);
+  player.x = nx;
+
+  const f = (player.x - minPX()) / (maxPX() - minPX());
+  padHandle.style.left = `calc(16px + ${(f*100).toFixed(1)}% * ${( (pad.clientWidth-32)/pad.clientWidth ).toFixed(3)})`;
+
+  cam += scroll*dt;
+  while(genY < cam + H + 520) genChunk(false);
+
+  carTimer -= dt;
+  if(carTimer <= 0){
+    carTimer = Math.max(1.05, 3.4 - t*0.020) * rnd(.8,1.3);
+    spawnCar();
+  }
+  for(const c of cars) c.y += c.vy*dt;
+
+  const cut = cam - 100;
+  obstacles = obstacles.filter(o=>o.y+o.h > cut);
+  coinsArr  = coinsArr.filter(o=>o.y > cut);
+  cars      = cars.filter(c=>c.y+c.h > cut && c.y < cam+H+880);
+  kerbL     = kerbL.filter(s=>s.y+s.h > cut);
+  kerbR     = kerbR.filter(s=>s.y+s.h > cut);
+  chunks    = chunks.filter(s=>s.y+s.h > cut);
+
+  const P = {x:player.x, y:cam+PLAYER_Y, w:player.w, h:player.h};
+  for(const o of obstacles) if(hit(P,o)){ die(nameOf(o.kind)); return; }
+  for(const c of cars)      if(hit(P,c)){ die(nameOf(c.kind)); return; }
+
+  for(const c of coinsArr){
+    if(c.got) continue;
+    if(Math.abs(c.x - (P.x+P.w/2)) < 19 && Math.abs(c.y - (P.y+P.h/2)) < 25){
+      c.got=true; coins++; blip(1180,.06,'square',.05);
+      setTimeout(()=>blip(1600,.05,'square',.04),50);
+      for(let i=0;i<5;i++) particles.push({x:c.x,y:c.y,vx:rnd(-46,46),vy:rnd(-20,80),life:.4,col:C.coin});
+    }
+  }
+  for(const p of particles){ p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt; }
+  particles = particles.filter(p=>p.life>0);
+
+  if(shake>0) shake -= dt*3;
+  if(flash>0) flash -= dt*4;
+
+  hudTime.querySelector('b').textContent = t.toFixed(1);
+  hudCoin.querySelector('b').textContent = coins;
+}
+
+function spawnCar(){
+  const r = Math.random();
+  let kind, w, h, vy, x, y;
+  if(r < .32){        kind='moto2'; w=26; h=48; }
+  else if(r < .76){   kind='car';   w=44; h=88; }
+  else if(r < .90){   kind='bus';   w=52; h=136; }
+  else {              kind='truck'; w=48; h=112; }
+
+  if(chance(.32)){                       // 對向來車
+    x = rnd(Z.road[0]+4, ROAD_MID-w-3);
+    vy = -scroll*rnd(.5,.9);
+    y = cam+H+rnd(60,220);
+  }else if(chance(.72)){                 // 同向前方慢車
+    x = rnd(ROAD_MID+3, Z.road[1]-w-4);
+    vy = scroll*rnd(.35,.80);
+    y = cam+H+rnd(60,220);
+  }else{                                 // 後方超車
+    x = rnd(Z.road[0]+4, Z.road[1]-w-4);
+    vy = scroll*rnd(1.2,1.55);
+    y = cam - h - rnd(30,140);
+  }
+  if(kind==='moto2' && chance(.22)) x = chance(.5) ? Z.road[0]+3 : Z.road[1]-w-3;
+  const cand = {x, y, w, h, vy};
+  if(!roadPassable(cand)) return;
+  cars.push({x, y, w, h, vy, kind, seed:Math.random()});
+}
+
+const MIN_GAP = 42;
+function roadPassable(cand){
+  const blockers = [];
+  for(const c of cars) blockers.push(c);
+  for(const o of obstacles)
+    if(o.x+o.w > Z.road[0] && o.x < Z.road[1]) blockers.push({x:o.x,y:o.y,w:o.w,h:o.h,vy:0});
+
+  for(const b of blockers){
+    if(pairGap(cand,b) >= MIN_GAP) continue;
+    const dy = (b.y + b.h/2) - (cand.y + cand.h/2);
+    const dv = b.vy - cand.vy;
+    const sep = (b.h + cand.h)/2 + 20;
+    if(Math.abs(dy) < sep) return false;
+    if(dy * dv < 0) return false;
+  }
+  const near = [cand];
+  for(const b of blockers)
+    if(b.y < cand.y+cand.h+140 && b.y+b.h > cand.y-140) near.push(b);
+  return freeGap(near) >= MIN_GAP;
+}
+function pairGap(a,b){ return freeGap([a,b]); }
+function freeGap(list){
+  const segs = list.map(s=>({x:s.x,w:s.w})).sort((p,q)=>p.x-q.x);
+  let cur = Z.road[0], g = 0;
+  for(const s of segs){ g = Math.max(g, s.x-cur); cur = Math.max(cur, s.x+s.w); }
+  return Math.max(g, Z.road[1]-cur);
+}
+
+function hit(a,b){
+  return a.x < b.x+b.w-2 && a.x+a.w-2 > b.x && a.y < b.y+b.h-2 && a.y+a.h-2 > b.y;
+}
+const NAMES = {
+  moto:'停在騎樓的機車', box:'店家堆的紙箱', plant:'騎樓的盆栽', sign:'立在路上的招牌',
+  table:'佔用騎樓的桌椅', pillar:'騎樓柱', steps:'沒有斜坡的台階', shopfront:'外推的店面',
+  manhole:'凹陷的人孔蓋', cone:'施工三角錐', illegal:'違停的車',
+  car:'一台轎車', bus:'一台公車', truck:'一台貨車', moto2:'一台機車'
+};
+function nameOf(k){ return NAMES[k] || '障礙物'; }
+
+const FACTS = [
+  '<b>騎樓</b>屬於私人土地但供公眾通行。停滿機車、擺滿商品時，輪椅使用者只剩車道可走。',
+  '一段沒有<b>緣石斜坡</b>的路緣，對輪椅來說等於一道牆——你必須繞很遠，或者直接上車道。',
+  '被迫走在<b>車道</b>上，不是選擇，是沒有其他路可以走。',
+  '騎樓常見的<b>高低差與階梯</b>，讓「一整條街」被切成許多走不通的片段。',
+  '<b>人孔蓋、坑洞、排水溝縫</b>會卡住前輪，是輪椅翻覆的常見原因之一。',
+  '<b>導盲磚</b>常被機車、花台、電線桿打斷——對白手杖使用者，斷掉的導盲磚等於斷掉的路。',
+  '無障礙不是替少數人多做的事——推嬰兒車、拉行李箱、拄拐杖的人，走的是同一條路。'
+];
+
+function die(cause){
+  deathCause = cause;
+  state='over'; shake=1; flash=1; crashSfx();
+  if(navigator.vibrate) try{navigator.vibrate([40,60,120]);}catch(e){}
+  save.coins += coins;
+  if(t > save.best) save.best = t;
+  writeSave();
+  showOver();
+}
+
+/* ══════════════ 繪圖 ══════════════ */
+function sy(worldY){ return H - (worldY - cam); }
+/* sprite 一律用 v0.2 的基準座標畫，外層放大兩倍 */
+function scaled(x,y,fn){
+  ctx.save(); ctx.translate(x,y); ctx.scale(2,2); fn(); ctx.restore();
+}
+
+function draw(){
+  ctx.save();
+  if(shake>0) ctx.translate(Math.round(rnd(-5,5)*shake), Math.round(rnd(-5,5)*shake));
+  drawWorld();
+  ctx.restore();
+  if(flash>0){
+    ctx.fillStyle = `rgba(217,79,67,${flash*.5})`;
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+function drawWorld(){
+  ctx.fillStyle = C.asphalt; ctx.fillRect(Z.road[0],0,Z.road[1]-Z.road[0],H);
+  for(let i=0;i<40;i++){
+    const yy = ((i*57 + Math.floor(cam*0.6)) % (H+40)) - 20;
+    const xx = Z.road[0] + ((i*71)%(Z.road[1]-Z.road[0]-5));
+    ctx.fillStyle = (i%3===0)? C.asphalt2 : C.crack;
+    ctx.fillRect(xx, yy, 5, 3);
+  }
+  ctx.fillStyle = C.paintY;
+  const seg=36, gap=28, per=seg+gap;
+  const off = (cam % per);
+  for(let y=-per + off; y<H+per; y+=per){ ctx.fillRect(ROAD_MID-2, y, 4, seg); }
+  ctx.fillStyle = C.paintW;
+  ctx.fillRect(Z.road[0]+4,0,3,H); ctx.fillRect(Z.road[1]-7,0,3,H);
+
+  for(const ch of chunks){
+    const top = sy(ch.y+ch.h), bot = sy(ch.y);
+    drawRoof(Z.wallL[0], top, Z.wallL[1]-Z.wallL[0], bot-top, ch.seedL, 'L');
+    drawRoof(Z.wallR[0], top, Z.wallR[1]-Z.wallR[0], bot-top, ch.seedR, 'R');
+    drawArcadeFloor(Z.arcL[0], top, Z.arcL[1]-Z.arcL[0], bot-top);
+    drawArcadeFloor(Z.arcR[0], top, Z.arcR[1]-Z.arcR[0], bot-top);
+  }
+
+  drawKerb(kerbL, Z.kerbL, 'L');
+  drawKerb(kerbR, Z.kerbR, 'R');
+
+  for(const c of coinsArr){
+    if(c.got) continue;
+    const y = sy(c.y);
+    if(y<-16||y>H+16) continue;
+    const bob = Math.sin(t*6 + c.y*.1);
+    const w = bob>0 ? 12 : 8;
+    ctx.fillStyle=C.coinD; ctx.fillRect(Math.round(c.x-w/2), Math.round(y-5), w, 13);
+    ctx.fillStyle=C.coin;  ctx.fillRect(Math.round(c.x-w/2), Math.round(y-6), w, 12);
+    ctx.fillStyle=C.coinHi;ctx.fillRect(Math.round(c.x-w/2)+2, Math.round(y-4), 3, 5);
+  }
+
+  for(const o of obstacles){
+    const y = sy(o.y+o.h);
+    if(y>H+80 || y+o.h<-80) continue;
+    const X=Math.round(o.x), Y=Math.round(y);
+    scaled(X,Y,()=>drawObstacle(o,0,0));
+  }
+
+  for(const c of cars){
+    const y = sy(c.y+c.h);
+    if(y>H+180 || y+c.h<-180) continue;
+    const X=Math.round(c.x), Y=Math.round(y);
+    scaled(X,Y,()=>drawCar(c,0,0));
+  }
+
+  for(const p of particles){
+    ctx.fillStyle=p.col; ctx.fillRect(Math.round(p.x), Math.round(sy(p.y)), 4,4);
+  }
+
+  if(state!=='over' || flash>.15){
+    const X=Math.round(player.x), Y=Math.round(sy(cam+PLAYER_Y+player.h));
+    scaled(X,Y,()=>drawPlayer(0,0,vehicle().id));
+  }
+}
+
+function drawRoof(x,y,w,h,seed,side){
+  const roof = C.roofA[Math.floor(seed*C.roofA.length)];
+  ctx.fillStyle = roof; ctx.fillRect(x,y,w,h);
+  ctx.fillStyle = C.roofEdge;
+  ctx.fillRect(side==='L'?x+w-3:x, y, 3, h);
+}
+
+function drawArcadeFloor(x,y,w,h){
+  ctx.fillStyle = C.tile; ctx.fillRect(x,y,w,h);
+  ctx.fillStyle = C.tileLine;
+  for(let ty = Math.floor(y/24)*24; ty < y+h; ty+=24){
+    if(ty>=y) ctx.fillRect(x, ty, w, 2);
+  }
+  for(let tx=x+24; tx<x+w; tx+=26) ctx.fillRect(tx, y, 2, h);
+  ctx.fillStyle = C.tile2;
+  ctx.fillRect(x, y, 4, h);
+}
+
+function drawKerb(arr, zone, side){
+  const [x0,x1]=zone, w=x1-x0;
+  for(const s of arr){
+    const top = sy(s.y+s.h), bot = sy(s.y), h = bot-top;
+    if(bot<-16||top>H+16) continue;
+    if(s.open){
+      ctx.fillStyle = C.rampDark; ctx.fillRect(x0-4, top, w+8, h);
+      ctx.fillStyle = C.ramp;     ctx.fillRect(x0-3, top, w+6, h);
+      ctx.fillStyle = '#fff';
+      const dir = side==='L' ? -1 : 1;
+      for(let y=Math.floor(top/28)*28+14; y<bot-6; y+=28){
+        if(y<top+5) continue;
+        const cx = x0 + w/2 + dir*1;
+        ctx.fillRect(cx - dir*5, y-5, 3, 3);
+        ctx.fillRect(cx - dir*2, y-1, 3, 3);
+        ctx.fillRect(cx - dir*5, y+3, 3, 3);
+      }
+    }else{
+      ctx.fillStyle = C.kerbTop;  ctx.fillRect(x0, top, w, h);
+      ctx.fillStyle = C.red;
+      ctx.fillRect(side==='L'?x1-3:x0, top, 3, h);
+      ctx.fillStyle = C.kerbShadow;
+      ctx.fillRect(side==='L'?x1:x0-5, top, 5, h);
+      ctx.fillStyle='#ddd8c8';
+      for(let y=Math.floor(top/24)*24; y<bot; y+=24){
+        if(y>=top) ctx.fillRect(x0, y, w-3, 2);
+      }
+    }
+  }
+}
+
+/* ---- 障礙物 sprites（基準座標，外層 x2） ---- */
+function drawObstacle(o,x,y){
+  const w=o.w/2, h=o.h/2;
+  ctx.fillStyle=C.shadow; ctx.fillRect(x+1,y+2,w,h);
+  switch(o.kind){
+    case 'moto': // 14x24
+      ctx.fillStyle=C.motoD; ctx.fillRect(x+5,y,6,h);
+      ctx.fillStyle=C.moto;  ctx.fillRect(x+3,y+3,8,h-8);
+      ctx.fillStyle='#22252f'; ctx.fillRect(x+2,y+1,10,3);
+      ctx.fillStyle='#aab3c4'; ctx.fillRect(x,y+2,2,2); ctx.fillRect(x+w-2,y+2,2,2);
+      ctx.fillStyle='#343947'; ctx.fillRect(x+4,y+h-7,6,7);
+      ctx.fillStyle=C.signRed; ctx.fillRect(x+5,y+h-2,4,2);
+      break;
+    case 'box': // 12x12
+      ctx.fillStyle=C.wood; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle=C.box;  ctx.fillRect(x+1,y+1,w-2,h-2);
+      ctx.fillStyle=C.wood; ctx.fillRect(x+Math.floor(w/2),y+1,1,h-2);
+      ctx.fillStyle='#e8d8b8'; ctx.fillRect(x+2,y+3,w-4,2);
+      break;
+    case 'plant': // 10x10
+      ctx.fillStyle=C.pot; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle=C.plant; ctx.fillRect(x+1,y+1,w-2,h-2);
+      ctx.fillStyle='#6cc47a'; ctx.fillRect(x+2,y+2,3,3); ctx.fillRect(x+w-4,y+4,2,2);
+      break;
+    case 'sign': // 14x9
+      ctx.fillStyle='#343947'; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle=C.sign;   ctx.fillRect(x+1,y+1,w-2,h-2);
+      ctx.fillStyle=C.signRed;ctx.fillRect(x+2,y+2,w-4,2);
+      ctx.fillStyle='#343947';ctx.fillRect(x+2,y+5,w-5,1);
+      break;
+    case 'table': // 15x15
+      ctx.fillStyle='#6b4a28'; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle=C.wood;   ctx.fillRect(x+1,y+1,w-2,h-2);
+      ctx.fillStyle='#5a3f22';
+      ctx.fillRect(x+2,y+2,3,3); ctx.fillRect(x+w-5,y+2,3,3);
+      ctx.fillRect(x+2,y+h-5,3,3); ctx.fillRect(x+w-5,y+h-5,3,3);
+      break;
+    case 'pillar': // 8x8
+      ctx.fillStyle='#8f877a'; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='#a89f8e'; ctx.fillRect(x+1,y+1,w-2,h-2);
+      ctx.fillStyle='#786f60'; ctx.fillRect(x+2,y+2,w-4,h-4);
+      break;
+    case 'steps': // 31x18
+      ctx.fillStyle='#b3ab98'; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='#cbc3b0'; ctx.fillRect(x,y,w,5);
+      ctx.fillStyle='#968d7a'; ctx.fillRect(x,y+5,w,2); ctx.fillRect(x,y+11,w,2);
+      ctx.fillStyle=C.paintY;
+      for(let i=0;i<w-4;i+=7) ctx.fillRect(x+i,y+h-3,4,2);
+      break;
+    case 'shopfront': // 31x18
+      ctx.fillStyle='#4a5568'; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='#5d6a80'; ctx.fillRect(x+1,y+1,w-2,h-2);
+      ctx.fillStyle=C.signRed; ctx.fillRect(x+2,y+3,w-4,5);
+      ctx.fillStyle=C.sign;    ctx.fillRect(x+4,y+5,w-8,1);
+      break;
+    case 'manhole': // 15x15
+      ctx.fillStyle='#5d6370'; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='#6d7382'; ctx.fillRect(x+1,y+1,w-2,h-2);
+      ctx.fillStyle='#4d525e';
+      for(let i=2;i<w-2;i+=3) ctx.fillRect(x+i,y+2,1,h-4);
+      break;
+    case 'cone': // 10x12
+      ctx.fillStyle='#c8471a'; ctx.fillRect(x,y+h-3,w,3);
+      ctx.fillStyle=C.cone;    ctx.fillRect(x+2,y,w-4,h-2);
+      ctx.fillStyle='#fff';    ctx.fillRect(x+2,y+3,w-4,2);
+      break;
+    case 'illegal': // 16x26
+      drawCarBody(x,y,w,h,'#9aa0ad','#6d7382',o.seed,true);
+      ctx.fillStyle=C.signRed; ctx.fillRect(x+2,y+2,2,2); ctx.fillRect(x+w-4,y+2,2,2);
+      break;
+  }
+}
+
+function drawCarBody(x,y,w,h,body,dark,seed,parked){
+  ctx.fillStyle=C.shadow; ctx.fillRect(x+2,y+2,w,h);
+  ctx.fillStyle=dark;  ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=body;  ctx.fillRect(x+1,y+2,w-2,h-4);
+  const wsY = y+Math.round(h*.12), wsH = Math.round(h*.20);
+  ctx.fillStyle=C.glass;  ctx.fillRect(x+2, wsY, w-4, wsH);
+  ctx.fillStyle=C.glassL; ctx.fillRect(x+3, wsY+1, w-6, 2);
+  ctx.fillStyle=body;     ctx.fillRect(x+2, wsY+wsH, w-4, Math.max(2,h-wsH*2-Math.round(h*.3)));
+  ctx.fillStyle=C.glass;  ctx.fillRect(x+2, y+h-Math.round(h*.24), w-4, Math.round(h*.14));
+  ctx.fillStyle=dark; ctx.fillRect(x-1,y+Math.round(h*.18),1,3); ctx.fillRect(x+w,y+Math.round(h*.18),1,3);
+  if(!parked){
+    ctx.fillStyle='#fff6d0'; ctx.fillRect(x+2,y,3,2); ctx.fillRect(x+w-5,y,3,2);
+    ctx.fillStyle=C.signRed; ctx.fillRect(x+2,y+h-2,3,2); ctx.fillRect(x+w-5,y+h-2,3,2);
+  }
+}
+
+function drawCar(c,x,y){
+  const w=c.w/2,h=c.h/2;
+  switch(c.kind){
+    case 'car': {
+      const cols=[['#d94f43','#9c2f27'],['#3f7fc8','#28558c'],['#e8e2cf','#b0aa96'],['#3f9b62','#276a41'],['#f2b705','#b07d00']];
+      const p = cols[Math.floor(c.seed*cols.length)];
+      drawCarBody(x,y,w,h,p[0],p[1],c.seed,false);
+      break;
+    }
+    case 'bus': // 26x68
+      drawCarBody(x,y,w,h,'#3f7fc8','#28558c',c.seed,false);
+      ctx.fillStyle='#f6efdc'; ctx.fillRect(x+2,y+18,w-4,4);
+      ctx.fillStyle=C.glass;
+      for(let i=0;i<4;i++) ctx.fillRect(x+2,y+25+i*10,w-4,6);
+      break;
+    case 'truck': // 24x56
+      drawCarBody(x,y,w,12,'#d8d2c0','#a09a88',c.seed,false);
+      ctx.fillStyle='#6d7688'; ctx.fillRect(x,y+13,w,h-13);
+      ctx.fillStyle='#818b9e'; ctx.fillRect(x+1,y+14,w-2,h-15);
+      ctx.fillStyle='#5b6375';
+      for(let i=y+17;i<y+h-2;i+=5) ctx.fillRect(x+2,i,w-4,1);
+      break;
+    case 'moto2': { // 13x24
+      ctx.fillStyle=C.motoD; ctx.fillRect(x+4,y,6,h);
+      ctx.fillStyle='#22252f'; ctx.fillRect(x+1,y+2,11,3);
+      ctx.fillStyle='#aab3c4'; ctx.fillRect(x-1,y+3,2,2); ctx.fillRect(x+w-1,y+3,2,2);
+      ctx.fillStyle=c.seed>.5?'#d94f43':'#3f7fc8'; ctx.fillRect(x+2,y+9,9,9);
+      ctx.fillStyle='#f6efdc'; ctx.fillRect(x+3,y+5,7,5);
+      ctx.fillStyle='#343947'; ctx.fillRect(x+3,y+5,7,2);
+      break;
+    }
+  }
+}
+
+/* ---- 主角（基準座標，外層 x2） ---- */
+function drawPlayer(x,y,type){
+  const v = VEHICLES.find(q=>q.id===type) || VEHICLES[0];
+  const w=v.w/2, h=v.h/2;
+
+  if(type==='blind'){ drawBlind(x,y,w,h); return; }
+
+  const cy = (type==='head'||type==='trike') ? y + (h-20) : y;
+  ctx.fillStyle=C.shadow; ctx.fillRect(x+1,y+2,w,h);
+  ctx.fillStyle='rgba(20,24,34,.5)'; ctx.fillRect(x-1,cy-1,w+2,22);
+
+  if(type==='trike'){                       // 三輪電動車：紅車身、深色把手、前輪
+    ctx.fillStyle='#8c2f2a'; ctx.fillRect(x+6,y+2,3,h-20);
+    ctx.fillStyle='#343947'; ctx.fillRect(x+1,y+1,13,2);
+    ctx.fillStyle=C.wheel;   ctx.fillRect(x+6,y-1,3,3);
+    ctx.fillStyle=C.coin;    ctx.fillRect(x+3,y,2,1); ctx.fillRect(x+10,y,2,1);
+  }
+  if(type==='head'){                        // 電動車頭：銀把手、大燈、寬前輪
+    ctx.fillStyle='#343947'; ctx.fillRect(x+6,y+1,3,h-20);
+    ctx.fillStyle='#aab3c4'; ctx.fillRect(x+1,y+1,13,2);
+    ctx.fillStyle=C.wheel;   ctx.fillRect(x+5,y-1,5,3);
+    ctx.fillStyle=C.coin;    ctx.fillRect(x+7,y+2,2,2);
+  }
+
+  /* 輪組 */
+  if(type==='power'){                       // 電動輪椅：後驅動輪＋前小輪
+    ctx.fillStyle=C.wheel;
+    ctx.fillRect(x,cy+11,3,7); ctx.fillRect(x+12,cy+11,3,7);
+    ctx.fillRect(x+1,cy+2,2,4); ctx.fillRect(x+12,cy+2,2,4);
+  }else{
+    ctx.fillStyle=C.wheel;
+    ctx.fillRect(x,cy+8,3,11); ctx.fillRect(x+12,cy+8,3,11);
+    ctx.fillStyle=C.wheelHub;
+    ctx.fillRect(x,cy+12,3,3); ctx.fillRect(x+12,cy+12,3,3);
+    if(type==='manual'){                    // 手推圈
+      ctx.fillStyle='#e6e9ee';
+      ctx.fillRect(x-1,cy+9,1,9); ctx.fillRect(x+15,cy+9,1,9);
+    }
+  }
+
+  /* 椅身（各車種配色） */
+  const chair  = type==='power' ? '#31543a' : type==='trike' ? '#7c3530' : C.chairD;
+  const chairL = type==='power' ? '#3f7a4e' : type==='trike' ? '#a04a42' : C.chair;
+  ctx.fillStyle=chair;  ctx.fillRect(x+3,cy+1,9,17);
+  ctx.fillStyle=chairL; ctx.fillRect(x+4,cy+2,7,15);
+
+  if(type==='power'){
+    ctx.fillStyle='#232a38'; ctx.fillRect(x+3,cy+15,9,4);   // 電池
+    ctx.fillStyle='#6cc47a'; ctx.fillRect(x+4,cy+16,2,2);   // 電量燈
+    ctx.fillStyle='#232a38'; ctx.fillRect(x+12,cy+8,3,4);   // 搖桿座
+    ctx.fillStyle=C.cone;    ctx.fillRect(x+13,cy+9,2,2);   // 搖桿
+  }
+  if(type==='trike'){
+    ctx.fillStyle='#232a38'; ctx.fillRect(x+3,cy+16,9,3);   // 踏板底座
+  }
+  if(type==='head'){
+    ctx.fillStyle='#aab3c4'; ctx.fillRect(x+3,cy+1,2,2); ctx.fillRect(x+10,cy+1,2,2); // 快拆扣
+  }
+
+  /* 乘客（各車種衣色） */
+  const shirt  = {manual:C.shirt, carer:'#3f9b62', power:'#c8791f', trike:'#f6efdc', head:'#d94f43'}[type] || C.shirt;
+  const shirtD = {manual:C.shirt2, carer:'#276a41', power:'#a05f12', trike:'#cfc7ab', head:'#9c2f27'}[type] || C.shirt2;
+  ctx.fillStyle=shirtD; ctx.fillRect(x+3,cy+7,9,7);
+  ctx.fillStyle=shirt;  ctx.fillRect(x+4,cy+7,7,6);
+  ctx.fillStyle=C.skinD;  ctx.fillRect(x+2,cy+9,2,3); ctx.fillRect(x+11,cy+9,2,3);
+  ctx.fillStyle=C.hair;   ctx.fillRect(x+4,cy+2,7,7);
+  ctx.fillStyle='#443328';ctx.fillRect(x+5,cy+2,5,2);
+  ctx.fillStyle=C.skin;   ctx.fillRect(x+5,cy+1,5,2);
+
+  if(type==='carer'){                       // 看護：肩線＋頭＋雙手握把
+    ctx.fillStyle='#584a78'; ctx.fillRect(x+2,cy+19,11,1);
+    ctx.fillStyle='#7a6aa0'; ctx.fillRect(x+2,cy+20,11,3);
+    ctx.fillStyle='#2b2018'; ctx.fillRect(x+4,cy+20,7,4);
+    ctx.fillStyle=C.skin;    ctx.fillRect(x+5,cy+19,5,2);
+    ctx.fillStyle=C.skin;    ctx.fillRect(x+1,cy+17,2,2); ctx.fillRect(x+12,cy+17,2,2);
+  }
+}
+
+function drawBlind(x,y,w,h){
+  ctx.fillStyle=C.shadow; ctx.fillRect(x+1,y+1,w,h);
+  ctx.fillStyle='rgba(20,24,34,.5)'; ctx.fillRect(x-1,y-1,w+2,h+2);
+  const stepP = Math.sin(t*9);
+  ctx.fillStyle='#232733';
+  ctx.fillRect(x+2, y+h-4+(stepP>0?0:2), 3,4);
+  ctx.fillRect(x+6, y+h-4+(stepP>0?2:0), 3,4);
+  ctx.fillStyle='#c8791f'; ctx.fillRect(x+1,y+4,9,6);
+  ctx.fillStyle='#e08a28'; ctx.fillRect(x+2,y+4,7,5);
+  ctx.fillStyle=C.skinD;   ctx.fillRect(x,y+6,2,3); ctx.fillRect(x+9,y+6,2,3);
+  ctx.fillStyle=C.hair;    ctx.fillRect(x+3,y+1,5,5);
+  ctx.fillStyle=C.skin;    ctx.fillRect(x+4,y,3,2);
+  const sweep = Math.sin(t*7);
+  const tipX = x+10 + sweep*6;
+  for(let i=0;i<=8;i++){
+    const px = Math.round(x+10 + (tipX-(x+10))*i/8);
+    const py = y+5 - i;
+    ctx.fillStyle = (i>=6)? C.caneBand : C.cane;
+    ctx.fillRect(px, py, 2, 2);
+  }
+}
+
+/* ══════════════ 標題背景 ══════════════ */
+function demo(dt){
+  scroll = 70; cam += scroll*dt;
+  while(genY < cam + H + 520) genChunk(false);
+  carTimer -= dt;
+  if(carTimer<=0){ carTimer = rnd(1.8,3.6); spawnCar(); }
+  for(const c of cars) c.y += c.vy*dt;
+  const cut = cam-100;
+  obstacles = obstacles.filter(o=>o.y+o.h>cut);
+  coinsArr  = coinsArr.filter(o=>o.y>cut);
+  cars      = cars.filter(c=>c.y+c.h>cut && c.y<cam+H+880);
+  kerbL = kerbL.filter(s=>s.y+s.h>cut);
+  kerbR = kerbR.filter(s=>s.y+s.h>cut);
+  chunks = chunks.filter(s=>s.y+s.h>cut);
+}
+
+/* ══════════════ 迴圈 ══════════════ */
+let last=0;
+function loop(ts){
+  const dt = Math.max(0, Math.min(.05, (ts-last)/1000 || 0)); last=ts;
+  if(state==='play') update(dt);
+  else if(state==='title') demo(dt);
+  else if(state==='over'){ if(shake>0) shake-=dt*3; if(flash>0) flash-=dt*4; }
+  draw();
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════ UI ══════════════ */
+const $ = id => document.getElementById(id);
+const scTitle=$('scTitle'), scHow=$('scHow'), scGarage=$('scGarage'), scOver=$('scOver');
+const hud=$('hud'), hudTime=$('hudTime'), hudCoin=$('hudCoin'), muteBtn=$('mute');
+function show(el){ [scTitle,scHow,scGarage,scOver].forEach(s=>s.classList.add('hide')); if(el) el.classList.remove('hide'); }
+function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('on'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'),1600); }
+
+$('btnStart').onclick = ()=> startGame();
+$('btnHow').onclick   = ()=> show(scHow);
+$('btnHowBack').onclick = ()=> show(scTitle);
+$('btnGarage').onclick = ()=>{ renderGarage(); show(scGarage); };
+$('btnGarageBack').onclick = ()=> show(scTitle);
+$('btnAgain').onclick = ()=> startGame();
+$('btnHome').onclick  = ()=>{ hud.classList.add('hide'); muteBtn.classList.add('hide'); pad.classList.add('hide'); renderGarage(); show(scGarage); };
+$('btnShare').onclick = ()=> shareResult();
+muteBtn.onclick = ()=>{ muted=!muted; muteBtn.textContent = muted?'♪ OFF':'♪ ON'; };
+
+function startGame(){
+  reset(); state='play';
+  show(null);
+  hud.classList.remove('hide'); muteBtn.classList.remove('hide'); pad.classList.remove('hide');
+  blip(660,.07); setTimeout(()=>blip(880,.09),90);
+}
+
+function showOver(){
+  hud.classList.add('hide'); pad.classList.add('hide');
+  $('causeTxt').textContent = '你撞上了 ' + deathCause;
+  $('rTime').textContent = t.toFixed(1);
+  document.querySelector('.bigtime').style.fontSize = (t.toFixed(1).length>4 ? 34 : 44)+'px';
+  $('rCoin').textContent = coins;
+  $('rBest').textContent = save.best.toFixed(1);
+  $('rCar').textContent  = vehicle().name;
+  $('factTxt').innerHTML = FACTS[Math.floor(Math.random()*FACTS.length)];
+  setTimeout(()=>show(scOver), 550);
+}
+
+/* ---- 角色選單 ---- */
+function renderGarage(){
+  const list = $('cardList'); list.innerHTML='';
+  const wc = $('walletCoins'); if(wc) wc.textContent = save.coins;
+  VEHICLES.forEach(v=>{
+    const owned = save.owned.includes(v.id);
+    const card = document.createElement('div');
+    card.className = 'card' + (save.current===v.id?' sel':'') + (owned?'':' lock');
+    const sp = Math.max(1, Math.round(v.speed/2.2*6));
+    const pr = save.current===v.id ? '<span class="tag-use">使用中</span>'
+             : owned ? '<span class="tag-own">選用</span>'
+             : `<span class="tag-price">◎${v.price}</span><small>你有 ◎${save.coins}</small>`;
+    card.innerHTML = `
+      <div class="thumb"><canvas width="72" height="72"></canvas></div>
+      <div class="info">
+        <div class="nm">${v.name}${v.id==='blind'?'<em class="mini">體積小</em>':''}</div>
+        <div class="spd">${'<i class="on"></i>'.repeat(sp)}${'<i></i>'.repeat(6-sp)}<span>速度 ${v.speed.toFixed(2)}</span></div>
+        <div class="st">${v.desc}</div>
+      </div>
+      <div class="pr">${pr}</div>`;
+    const c = card.querySelector('canvas'), cc = c.getContext('2d');
+    cc.imageSmoothingEnabled=false;
+    cc.fillStyle='#b9c6cf'; cc.fillRect(0,0,72,72);
+    const bw=v.w/2, bh=v.h/2;
+    cc.save(); cc.scale(3,3); cc.translate((24-bw)/2, (24-bh)/2 - (v.id==='carer'?2:0));
+    useCtx(cc); drawPlayer(0,0,v.id); useCtx(MAIN);
+    cc.restore();
+    card.onclick = ()=>{
+      if(owned){ save.current=v.id; writeSave(); renderGarage(); blip(760,.06); }
+      else if(save.coins >= v.price){
+        save.coins -= v.price; save.owned.push(v.id); save.current=v.id; writeSave();
+        renderGarage(); blip(880,.08); setTimeout(()=>blip(1180,.1),90);
+        toast('解鎖：'+v.name);
+      }else{
+        toast('金幣不足，還差 '+(v.price-save.coins));
+        blip(160,.14,'square',.05);
+      }
+    };
+    list.appendChild(card);
+  });
+}
+
+/* ---- 分享圖 ---- */
+async function shareResult(){
+  try{ await document.fonts.load('10px "Press Start 2P"'); }catch(e){}
+  const ex=document.createElement('canvas');
+  ex.width=1080; ex.height=1350;
+  const g=ex.getContext('2d'); g.imageSmoothingEnabled=false;
+  const w=ex.width, h=ex.height;
+  const ZH='"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  const PX='"Press Start 2P",monospace';
+  const tt = t.toFixed(1);
+  const v = vehicle();
+  g.textBaseline='top';
+  function hazard(y, ht){
+    g.save(); g.beginPath(); g.rect(0,y,w,ht); g.clip();
+    g.fillStyle='#f2b705'; g.fillRect(0,y,w,ht);
+    g.fillStyle='#232733';
+    for(let x=-ht;x<w+ht;x+=44){
+      g.beginPath(); g.moveTo(x,y+ht); g.lineTo(x+ht,y); g.lineTo(x+ht+22,y); g.lineTo(x+22,y+ht); g.closePath(); g.fill();
+    }
+    g.restore();
+  }
+  /* 磁磚底 */
+  g.fillStyle='#f6efdc'; g.fillRect(0,0,w,h);
+  g.fillStyle='rgba(35,39,51,.06)';
+  for(let x=90;x<w;x+=90) g.fillRect(x,0,4,h);
+  for(let y=90;y<h;y+=90) g.fillRect(0,y,w,4);
+  /* 外框 */
+  g.fillStyle='#232733';
+  g.fillRect(0,0,w,10); g.fillRect(0,h-10,w,10); g.fillRect(0,0,10,h); g.fillRect(w-10,0,10,h);
+  /* 上方招牌黑帶 */
+  g.fillStyle='#232733'; g.fillRect(0,0,w,208);
+  g.fillStyle='#d94f43'; g.fillRect(10,10,14,14); g.fillRect(w-24,10,14,14);
+  g.fillStyle='#f2b705'; g.font='900 66px '+ZH;
+  g.fillText('騎樓沒有路', 64, 46);
+  g.fillStyle='#fdfbf4'; g.font='17px '+PX;
+  g.fillText('NO WAY THROUGH · TAIWAN STREET', 66, 142);
+  hazard(208, 26);
+  /* 主數字 */
+  g.fillStyle='#4a4636'; g.font='700 34px '+ZH;
+  g.fillText('我在台灣的街道上撐了', 64, 288);
+  g.font='148px '+PX;
+  g.fillStyle='#f2b705'; g.fillText(tt, 74, 372);
+  g.fillStyle='#232733'; g.fillText(tt, 64, 362);
+  const tw = g.measureText(tt).width;
+  g.fillStyle='#232733'; g.font='900 52px '+ZH;
+  g.fillText('秒', 84+tw, 458);
+  /* 角色磁磚牌 */
+  g.fillStyle='#232733'; g.fillRect(w-322, 322, 266, 266);
+  g.fillStyle='#e6d8b2'; g.fillRect(w-314, 314, 266, 266);
+  g.strokeStyle='#232733'; g.lineWidth=8; g.strokeRect(w-314, 314, 266, 266);
+  g.fillStyle='rgba(35,39,51,.12)';
+  for(let i2=1;i2<4;i2++){ g.fillRect(w-314, 314+i2*66, 266, 3); g.fillRect(w-314+i2*66, 314, 3, 266); }
+  {
+    const sc=10, bw=v.w/2*sc, bh=v.h/2*sc;
+    g.save(); g.translate(w-314+(266-bw)/2, 314+(266-bh)/2); g.scale(sc,sc);
+    useCtx(g); drawPlayer(0,0,v.id); useCtx(MAIN);
+    g.restore();
+  }
+  /* 死因章 */
+  g.save();
+  g.translate(70, 600); g.rotate(-0.035);
+  g.font='900 32px '+ZH;
+  const ct='✗ 撞上了 '+(deathCause||'障礙物');
+  const cw2=g.measureText(ct).width;
+  g.fillStyle='rgba(217,79,67,.08)'; g.fillRect(0,0,cw2+44,70);
+  g.strokeStyle='#d94f43'; g.lineWidth=6; g.strokeRect(0,0,cw2+44,70);
+  g.fillStyle='#d94f43'; g.fillText(ct,22,16);
+  g.restore();
+  /* 統計三格 */
+  const sy0=730, cwd=(w-128-48)/3;
+  const stats=[['金幣','◎ '+coins],['最佳紀錄',save.best.toFixed(1)+' 秒'],['角色',v.name]];
+  stats.forEach((s,i2)=>{
+    const x=64+i2*(cwd+24);
+    g.fillStyle='#232733'; g.fillRect(x+7,sy0+7,cwd,124);
+    g.fillStyle='#fdfbf4'; g.fillRect(x,sy0,cwd,124);
+    g.strokeStyle='#232733'; g.lineWidth=6; g.strokeRect(x+3,sy0+3,cwd-6,118);
+    g.fillStyle='#8b8674'; g.font='900 22px '+ZH; g.fillText(s[0], x+22, sy0+22);
+    g.fillStyle='#232733'; g.font='900 34px '+ZH; g.fillText(s[1], x+22, sy0+62);
+  });
+  hazard(908, 18);
+  /* 小知識 */
+  g.fillStyle='#4a4636'; g.font='500 30px '+ZH;
+  wrapText(g,'騎樓被停滿、路緣沒有斜坡、只好走上車道——這是遊戲，也是每天有人在走的通勤路線。',64, 968, w-128, 52);
+  /* 底帶 */
+  g.fillStyle='#232733'; g.fillRect(0,h-186,w,176);
+  g.fillStyle='#f2b705'; g.font='900 34px '+ZH;
+  g.fillText('#騎樓沒有路　#無障礙', 64, h-146);
+  g.fillStyle='#9aa3b5'; g.font='700 24px '+ZH;
+  g.fillText('台灣街頭像素通勤遊戲 · NO WAY THROUGH', 64, h-88);
+
+  ex.toBlob(async b=>{
+    const file = new File([b],'no-way-through.png',{type:'image/png'});
+    try{
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], text:`我在《騎樓沒有路》撐了 ${tt} 秒。`});
+        return;
+      }
+    }catch(e){}
+    try{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b); a.download='no-way-through.png'; a.click();
+      toast('已下載成績圖');
+    }catch(e){ toast('請直接長按截圖分享'); }
+  },'image/png');
+}
+function wrapText(g,text,x,y,maxW,lh){
+  let line='';
+  for(const chq of text){
+    if(g.measureText(line+chq).width > maxW){ g.fillText(line,x,y); y+=lh; line=chq; }
+    else line+=chq;
+  }
+  g.fillText(line,x,y);
+}
+
+/* 啟動 */
+(async ()=>{
+  await loadSave();
+  reset();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
