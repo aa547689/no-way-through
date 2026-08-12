@@ -742,20 +742,23 @@ function spawnCar(){
   else if(r < .90){   kind='bus';   w=52; h=136; }
   else {              kind='truck'; w=48; h=112; }
 
-  if(chance(.32)){                       // 對向來車
-    x = rnd(Z.road[0]+4, ROAD_MID-w-3);
+  // 車道規則（2026-08-12 老闆定）：左車道一律往下（對向），右車道一律往上（同向）
+  // 寬車（bus/truck）塞不進半邊車道時貼外側、允許壓一點中線
+  const laneX = (lo,hi,minX)=> hi>=lo ? rnd(lo,hi) : Math.max(minX, hi);
+  if(chance(.38)){                       // 對向來車（左車道）
+    x = laneX(Z.road[0]+4, ROAD_MID-w-3, Z.road[0]+2);
     vy = -scroll*rnd(.5,.9);
     y = cam+H+rnd(60,220);
-  }else if(chance(.72)){                 // 同向前方慢車
-    x = rnd(ROAD_MID+3, Z.road[1]-w-4);
+  }else if(chance(.72)){                 // 同向前方慢車（右車道）
+    x = laneX(ROAD_MID+3, Z.road[1]-w-4, ROAD_MID-10);
     vy = scroll*rnd(.35,.80);
     y = cam+H+rnd(60,220);
-  }else{                                 // 後方超車
-    x = rnd(Z.road[0]+4, Z.road[1]-w-4);
+  }else{                                 // 同向後方超車（右車道）
+    x = laneX(ROAD_MID+3, Z.road[1]-w-4, ROAD_MID-10);
     vy = scroll*rnd(1.2,1.55);
     y = cam - h - rnd(30,140);
   }
-  if(kind==='moto2' && chance(.22)) x = chance(.5) ? Z.road[0]+3 : Z.road[1]-w-3;
+  if(kind==='moto2' && chance(.22)) x = (vy<0) ? Z.road[0]+3 : Z.road[1]-w-3;
   const cand = {x, y, w, h, vy};
   if(!roadPassable(cand)) return;
   cars.push({x, y, w, h, vy, kind, seed:Math.random()});
