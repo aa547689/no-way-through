@@ -258,6 +258,30 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 .fact{font-size:24px;line-height:1.8;color:var(--ink2);padding:11px 13px;font-weight:500;}
 .fact b{color:var(--ink);font-weight:900;border-bottom:3px solid var(--sun);}
 
+/* 排行榜 */
+#lbModal{position:absolute;inset:0;z-index:70;background:rgba(20,26,40,.74);display:flex;align-items:center;justify-content:center;padding:22px;}
+#lbModal.hide{display:none;}
+.lb-box .hide{display:none;}
+.lb-box{background:var(--paper);border:4px solid var(--ink);box-shadow:0 8px 0 var(--ink);width:100%;padding:16px 16px 14px;}
+.lb-title{font-size:22px;font-weight:900;letter-spacing:4px;margin-bottom:10px;}
+.lb-sub{font-size:15px;font-weight:700;color:var(--ink2);line-height:1.7;margin-bottom:10px;}
+.lb-sub b{color:#a06f00;}
+#lbNameInput{width:100%;font-family:inherit;font-size:18px;font-weight:800;padding:10px 12px;border:3px solid var(--ink);background:#fff;color:var(--ink);margin-bottom:12px;border-radius:0;-webkit-appearance:none;}
+#lbNameInput:focus{outline:3px solid var(--sun);}
+.lb-btnrow{display:flex;gap:10px;}
+.lb-btn{flex:1;font-family:inherit;font-size:16px;font-weight:900;letter-spacing:3px;padding:12px 8px;background:var(--sun);color:var(--ink);border:3px solid var(--ink);box-shadow:0 5px 0 var(--ink);cursor:pointer;}
+.lb-btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink);}
+.lb-btn.ghost{background:var(--paper);color:var(--mut);}
+#lbList{max-height:44vh;overflow-y:auto;border:3px solid var(--ink);background:#fff;margin-bottom:12px;}
+.lb-row{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:14.5px;font-weight:700;border-bottom:2px solid #eee6d0;}
+.lb-row:last-child{border-bottom:0;}
+.lb-row .rk{flex:0 0 40px;font-family:"Press Start 2P",monospace;font-size:10px;color:var(--mut);}
+.lb-row .rk.top1{color:#b07d00;}
+.lb-row .nm2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lb-row .car2{flex:0 0 auto;font-size:11px;color:var(--mut);}
+.lb-row .sc{font-family:"Press Start 2P",monospace;font-size:10px;color:#a06f00;}
+.lb-row.me{background:#fff3c4;}
+
 #toast{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);z-index:60;
   background:var(--ink);color:var(--paper);border:3px solid var(--sun);box-shadow:0 5px 0 rgba(16,20,32,.5);
   padding:12px 16px;font-size:15px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;}
@@ -373,11 +397,33 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
     <div class="factbox"><div class="f-tag">無障礙小知識</div><div class="fact" id="factTxt"></div></div>
     <div class="spacer"></div>
     <button class="btn" id="btnAgain">再來一次<span class="en">▶ RETRY</span></button>
+    <button class="btn ghost" id="btnUpload">上傳成績<span class="en">UPLOAD SCORE</span></button>
     <div class="row">
-      <button class="btn ghost small" id="btnShare">分享成績<span class="en">SHARE</span></button>
+      <button class="btn ghost small" id="btnShare">分享截圖<span class="en">SCREENSHOT</span></button>
       <button class="btn ghost small" id="btnHome">車庫／首頁<span class="en">HOME</span></button>
     </div>
     <p class="credit">©信如同學 @hiiamhsinju</p>
+  </div>
+
+  <div id="lbModal" class="hide">
+    <div class="lb-box">
+      <div id="lbPhaseName">
+        <div class="lb-title">上傳成績</div>
+        <div class="lb-sub">這一趟撐了 <b id="lbScore">0.0</b> 秒——留下名字上榜！</div>
+        <input id="lbNameInput" maxlength="12" placeholder="你的名字（12 字內）" autocomplete="off">
+        <div class="lb-btnrow">
+          <button class="lb-btn ghost" id="lbCancel">取消</button>
+          <button class="lb-btn" id="lbSubmit">上傳</button>
+        </div>
+      </div>
+      <div id="lbPhaseBoard" class="hide">
+        <div class="lb-title">排行榜<span class="en" style="font-size:10px;margin-left:8px;color:var(--mut);">TOP 20</span></div>
+        <div id="lbRank" class="lb-sub"></div>
+        <div id="lbList"></div>
+        <div class="lb-btnrow"><button class="lb-btn" id="lbClose">關閉</button></div>
+      </div>
+      <div id="lbLoading" class="hide lb-sub" style="text-align:center;padding:14px 0;">上傳中⋯</div>
+    </div>
   </div>
 
   <div id="toast"></div>
@@ -511,7 +557,7 @@ function reset(){
   cam=0; scroll=112; t=0; coins=0;
   obstacles=[]; cars=[]; coinsArr=[]; kerbL=[]; kerbR=[]; chunks=[]; particles=[]; walkers=[];
   genY=0; carTimer=3.0; walkerTimer=4.0; shake=0; flash=0; deathCause='';
-  invuln=0; stuck=0; slowT=0; powerUsed=false; carerCD=0; kerbStuckCD=0; slip=0;
+  invuln=0; stuck=0; slowT=0; powerUsed=false; carerCD=0; kerbStuckCD=0; slip=0; uploaded=false;
   const v = vehicle();
   player={x:ROAD_MID+14, w:v.w, h:v.h, targetX:ROAD_MID+14};
   while(genY < cam + H + 560) genChunk(genY < CHUNK*2);
@@ -626,6 +672,7 @@ function genChunk(safe){
 /* ══════════════ 輸入 ══════════════ */
 const keys = {};
 addEventListener('keydown', e=>{
+  if(e.target && e.target.tagName==='INPUT') return;   // 排行榜輸入名字時不攔截
   if(['ArrowLeft','ArrowRight','a','d','A','D',' '].includes(e.key)) e.preventDefault();
   keys[e.key]=true;
   if(e.key===' ' && state!=='play'){ const s=document.getElementById('scTitle'); if(!s.classList.contains('hide')) document.getElementById('btnStart').click(); }
@@ -1543,6 +1590,75 @@ muteBtn.onclick = ()=>{
   muted=!muted; muteBtn.textContent = muted?'♪ OFF':'♪ ON';
   if(bgmEl){ if(muted) bgmEl.pause(); else if(state==='play') bgmEl.play().catch(()=>{}); }
 };
+
+/* ---- 排行榜 ---- */
+const LB_API = '__LB_API_URL__';   // GAS Web App /exec 網址（部署後填入）
+let uploaded = false;
+function lbShow(phase){
+  $('lbPhaseName').classList.toggle('hide', phase!=='name');
+  $('lbPhaseBoard').classList.toggle('hide', phase!=='board');
+  $('lbLoading').classList.toggle('hide', phase!=='loading');
+}
+$('btnUpload').onclick = ()=>{
+  if(LB_API.indexOf('http') !== 0){ toast('排行榜準備中，晚點再來！'); return; }
+  if(uploaded){ lbOpenBoard(); return; }   // 這局已上傳→直接看榜
+  $('lbScore').textContent = t.toFixed(1);
+  $('lbNameInput').value = save.pname || '';
+  lbShow('name');
+  $('lbModal').classList.remove('hide');
+};
+$('lbCancel').onclick = ()=> $('lbModal').classList.add('hide');
+$('lbClose').onclick  = ()=> $('lbModal').classList.add('hide');
+$('lbNameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('lbSubmit').click(); });
+$('lbSubmit').onclick = async ()=>{
+  const name = $('lbNameInput').value.trim().slice(0,12);
+  if(!name){ toast('先輸入名字'); return; }
+  save.pname = name; writeSave();
+  lbShow('loading');
+  try{
+    const r = await fetch(LB_API, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({name, score:+t.toFixed(1), car: vehicle().name})});
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.err || 'fail');
+    uploaded = true;
+    lbRender(d.top||[], name, d.rank, d.best);
+    lbShow('board');
+    blip(880,.08); setTimeout(()=>blip(1180,.1),90);
+  }catch(e){
+    lbShow('name');
+    toast('上傳失敗，請稍後再試');
+    blip(160,.14,'square',.05);
+  }
+};
+async function lbOpenBoard(){
+  lbShow('loading'); $('lbModal').classList.remove('hide');
+  try{
+    const r = await fetch(LB_API);
+    const d = await r.json();
+    lbRender(d.top||[], save.pname||'', null, null);
+    lbShow('board');
+  }catch(e){ $('lbModal').classList.add('hide'); toast('讀取排行榜失敗'); }
+}
+function lbRender(top, myName, rank, best){
+  $('lbRank').textContent = rank
+    ? `你的名次：第 ${rank} 名（最佳 ${best} 秒）`
+    : '看看大家在這條路上撐了多久——';
+  const list = $('lbList'); list.innerHTML='';
+  top.slice(0,20).forEach((r2,i)=>{
+    const row = document.createElement('div');
+    row.className = 'lb-row' + (r2.n===myName ? ' me' : '');
+    row.innerHTML = `<span class="rk${i===0?' top1':''}">#${i+1}</span><span class="nm2"></span><span class="car2"></span><span class="sc"></span>`;
+    row.querySelector('.nm2').textContent = r2.n;
+    row.querySelector('.car2').textContent = r2.c || '';
+    row.querySelector('.sc').textContent = (+r2.s).toFixed(1)+'s';
+    list.appendChild(row);
+  });
+  if(!top.length){
+    const row = document.createElement('div');
+    row.className='lb-row'; row.textContent='還沒有人上榜——當第一個！';
+    list.appendChild(row);
+  }
+}
 
 /* ---- 首頁選項：操作方式／放大模式 ---- */
 function renderOpts(){
