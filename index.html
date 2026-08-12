@@ -66,7 +66,7 @@ canvas#game{position:absolute;inset:0;width:100%;height:100%;image-rendering:pix
 #pad::before{content:"";position:absolute;top:0;left:0;right:0;height:7px;
   background:repeating-linear-gradient(-45deg,var(--ink) 0 11px,var(--sun) 11px 22px);pointer-events:none;}
 #pad .lbl{position:absolute;top:13px;left:0;right:0;text-align:center;
-  font-size:13px;font-weight:900;color:var(--ink);letter-spacing:3px;pointer-events:none;}
+  font-size:16px;font-weight:900;color:var(--ink);letter-spacing:3px;pointer-events:none;}
 #pad .lbl .en{display:block;font-size:8px;letter-spacing:2px;color:#8f6a02;margin-top:5px;}
 #pad .rail{position:absolute;left:16px;right:16px;top:60px;height:16px;
   background:#c98f00;border:3px solid var(--ink);box-shadow:inset 0 4px 0 rgba(35,39,51,.28);pointer-events:none;}
@@ -77,6 +77,16 @@ canvas#game{position:absolute;inset:0;width:100%;height:100%;image-rendering:pix
   font-size:26px;font-weight:900;color:var(--ink);}
 #pad:active{cursor:grabbing;}
 #pad:active #padHandle{transform:translateY(4px);box-shadow:0 2px 0 var(--ink);}
+/* 按鍵操作模式：兩顆大按鈕取代拖曳軌道 */
+.padbtn{display:none;position:absolute;top:17px;bottom:12px;width:45%;
+  background:var(--paper);border:4px solid var(--ink);box-shadow:0 6px 0 var(--ink);
+  font-family:inherit;font-size:36px;font-weight:900;color:var(--ink);
+  align-items:center;justify-content:center;touch-action:none;cursor:pointer;}
+#padL{left:10px;} #padR{right:10px;}
+.padbtn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink);}
+#pad.btnmode .lbl,#pad.btnmode .rail,#pad.btnmode #padHandle{display:none;}
+#pad.btnmode .padbtn{display:flex;}
+#pad.btnmode{cursor:default;}
 
 /* ---------- overlays ---------- */
 .screen{
@@ -98,7 +108,7 @@ canvas#game{position:absolute;inset:0;width:100%;height:100%;image-rendering:pix
 .kicker i{font-style:normal;color:var(--sun);margin-right:8px;}
 .pageh{margin-bottom:14px;}
 .pageh h2{font-size:28px;font-weight:900;letter-spacing:10px;line-height:1;}
-.pageh-sub{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin-top:9px;letter-spacing:1px;line-height:1.7;}
+.pageh-sub{display:block;font-size:22px;font-weight:700;color:var(--ink2);margin-top:9px;letter-spacing:1px;line-height:1.7;}
 
 /* title */
 .signboard{background:var(--sunL);border:5px solid var(--ink);box-shadow:9px 9px 0 rgba(24,28,40,.82);
@@ -109,14 +119,24 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 .t-en{display:inline-block;font-family:"Press Start 2P",monospace;font-size:12px;color:var(--sun);
   background:var(--ink);padding:9px 10px;margin-top:13px;letter-spacing:1px;}
 .t-lead{background:rgba(253,251,244,.95);border:3px solid var(--ink);box-shadow:5px 5px 0 rgba(24,28,40,.55);
-  padding:12px 14px;font-size:15px;line-height:1.85;font-weight:700;color:var(--ink2);}
+  padding:12px 14px;font-size:26px;line-height:1.7;font-weight:700;color:var(--ink2);}
 .t-lead b{color:var(--ink);}
 .legend{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap;}
 .legend span{display:flex;align-items:center;gap:7px;background:rgba(253,251,244,.95);
-  border:3px solid var(--ink);box-shadow:3px 3px 0 rgba(24,28,40,.5);padding:7px 9px;font-size:12.5px;font-weight:900;}
-.sw{flex:0 0 auto;width:15px;height:15px;border:2px solid var(--ink);display:inline-block;}
+  border:3px solid var(--ink);box-shadow:3px 3px 0 rgba(24,28,40,.5);padding:7px 9px;font-size:20px;font-weight:900;}
+.sw{flex:0 0 auto;width:20px;height:20px;border:2px solid var(--ink);display:inline-block;}
 .trans .hint{color:#e9eef4;text-shadow:0 2px 0 rgba(16,20,32,.7);}
-.hint{font-size:12.5px;color:var(--mut);line-height:1.8;text-align:center;margin-top:2px;font-weight:800;letter-spacing:1px;}
+.hint{font-size:20px;color:var(--mut);line-height:1.7;text-align:center;margin-top:2px;font-weight:800;letter-spacing:1px;}
+
+/* 首頁選項（操作方式／放大模式） */
+.opts{display:flex;flex-direction:column;gap:9px;margin:0 0 14px;}
+.optrow{display:flex;align-items:stretch;gap:9px;}
+.optlbl{flex:0 0 auto;display:flex;align-items:center;background:var(--ink);color:var(--paper);
+  font-size:17px;font-weight:900;letter-spacing:3px;padding:0 11px;box-shadow:3px 3px 0 rgba(24,28,40,.5);}
+.optbtn{flex:1;background:rgba(253,251,244,.92);border:3px solid var(--ink);box-shadow:0 4px 0 rgba(24,28,40,.55);
+  font-family:inherit;font-size:18px;font-weight:900;letter-spacing:2px;padding:11px 4px;cursor:pointer;color:var(--mut);}
+.optbtn.on{background:var(--sun);color:var(--ink);box-shadow:0 4px 0 var(--ink);}
+.optbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);}
 
 /* buttons */
 .btn{
@@ -135,14 +155,14 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 /* how to play */
 .rules{display:flex;flex-direction:column;gap:9px;margin-bottom:16px;}
 .rule{display:flex;gap:11px;align-items:center;background:var(--paper);border:3px solid var(--ink);
-  box-shadow:0 4px 0 rgba(35,39,51,.3);padding:9px 12px;font-size:14.5px;line-height:1.65;font-weight:700;color:var(--ink2);}
+  box-shadow:0 4px 0 rgba(35,39,51,.3);padding:9px 12px;font-size:24px;line-height:1.6;font-weight:700;color:var(--ink2);}
 .rule b{color:var(--cone);}
 .rule .ic{flex:0 0 auto;width:32px;height:32px;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;
   font-size:15px;font-weight:900;box-shadow:2px 2px 0 rgba(35,39,51,.3);}
 .ic.up{background:var(--paper);}
 .ic.no{background:var(--blood);color:#fff;}
 .ic.coin{background:var(--sun);}
-.sect{font-size:13px;font-weight:900;letter-spacing:3px;color:var(--cone);margin:2px 0 10px;}
+.sect{font-size:20px;font-weight:900;letter-spacing:3px;color:var(--cone);margin:2px 0 10px;}
 .diagram{position:relative;height:182px;flex:0 0 auto;border:4px solid var(--ink);box-shadow:0 6px 0 rgba(35,39,51,.32);
   display:grid;grid-template-columns:36% 34px 1fr;margin-bottom:10px;overflow:hidden;background:#8f95a3;}
 .dg-arc{background:
@@ -150,7 +170,7 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
     repeating-linear-gradient(90deg, rgba(35,39,51,.10) 0 2px, transparent 2px 30px),
     #e6d8b2;
   display:flex;align-items:center;padding-left:13px;}
-.dg-arc span{writing-mode:vertical-rl;letter-spacing:12px;font-weight:900;font-size:14px;color:#9c8f66;}
+.dg-arc span{writing-mode:vertical-rl;letter-spacing:12px;font-weight:900;font-size:18px;color:#9c8f66;}
 .dg-kerb{display:flex;flex-direction:column;}
 .dg-kerb .k{flex:1;background:linear-gradient(90deg,#efeadb 0 60%,#d94f43 60%);border-top:2px solid rgba(35,39,51,.18);}
 .dg-kerb .k:first-child{border-top:0;}
@@ -161,7 +181,7 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 .dg-road{position:relative;display:flex;align-items:center;justify-content:flex-end;padding-right:11px;}
 .dg-road::before{content:"";position:absolute;left:55%;top:0;bottom:0;width:4px;
   background:repeating-linear-gradient(0deg,var(--sun) 0 15px,transparent 15px 28px);}
-.dg-road span{writing-mode:vertical-rl;letter-spacing:12px;font-weight:900;font-size:14px;color:#e2e6ec;}
+.dg-road span{writing-mode:vertical-rl;letter-spacing:12px;font-weight:900;font-size:18px;color:#e2e6ec;}
 .dg-line{position:absolute;border-top:4px dotted;}
 .dg-line.ok{left:9%;right:96px;top:50%;border-color:#1f6b3e;}
 .dg-line.ok::before{content:"◀";position:absolute;left:-4px;top:-12px;font-size:14px;color:#1f6b3e;}
@@ -170,12 +190,12 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 .dg-you{position:absolute;right:52px;top:calc(33.5% - 17px);width:34px;height:34px;
   display:flex;align-items:center;justify-content:center;background:#3f7fc8;border:3px solid var(--ink);
   color:#fff;font-size:14px;font-weight:900;box-shadow:3px 3px 0 rgba(24,28,40,.45);}
-.dg-tag{position:absolute;left:calc(36% + 17px);transform:translate(-50%,0);font-size:11px;font-weight:900;
+.dg-tag{position:absolute;left:calc(36% + 17px);transform:translate(-50%,0);font-size:15px;font-weight:900;
   letter-spacing:1px;padding:4px 6px;border:2px solid var(--ink);box-shadow:2px 2px 0 rgba(24,28,40,.45);white-space:nowrap;}
 .dg-tag.ok{top:calc(50% + 12px);background:var(--sunL);}
 .dg-tag.no{top:calc(17% + 12px);background:var(--blood);color:#fff;}
 .dg-cap{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
-.dg-cap span{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;color:var(--ink2);}
+.dg-cap span{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:800;color:var(--ink2);}
 
 /* garage */
 .gar-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
@@ -198,7 +218,7 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 .spd i{width:13px;height:9px;background:#ddd5ba;border:2px solid var(--ink);}
 .spd i.on{background:var(--sun);}
 .spd span{font-size:11px;font-weight:800;color:var(--mut);margin-left:6px;letter-spacing:1px;}
-.card .st{font-size:12.5px;color:var(--ink2);line-height:1.55;font-weight:500;}
+.card .st{font-size:18px;color:var(--ink2);line-height:1.5;font-weight:500;}
 .card .pr{margin-left:auto;flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px;text-align:right;max-width:76px;}
 .tag-use{background:var(--ink);color:var(--sun);font-size:12px;font-weight:900;letter-spacing:2px;padding:6px 9px;}
 .tag-own{background:var(--paper);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);
@@ -227,10 +247,10 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 .meta b{display:block;font-family:"Press Start 2P",monospace;font-size:15px;color:var(--ink);margin-top:8px;font-weight:400;}
 .meta b.zh{font-family:inherit;font-weight:900;font-size:14px;letter-spacing:1px;}
 .factbox{border:3px solid var(--ink);box-shadow:0 5px 0 rgba(35,39,51,.3);background:var(--paper);margin-bottom:14px;}
-.f-tag{background:var(--sun);border-bottom:3px solid var(--ink);font-size:12px;font-weight:900;letter-spacing:3px;
+.f-tag{background:var(--sun);border-bottom:3px solid var(--ink);font-size:17px;font-weight:900;letter-spacing:3px;
   padding:7px 12px;display:flex;align-items:center;gap:8px;}
 .f-tag::before{content:"";width:10px;height:10px;background:var(--blood);border:2px solid var(--ink);}
-.fact{font-size:14px;line-height:1.9;color:var(--ink2);padding:11px 13px;font-weight:500;}
+.fact{font-size:24px;line-height:1.8;color:var(--ink2);padding:11px 13px;font-weight:500;}
 .fact b{color:var(--ink);font-weight:900;border-bottom:3px solid var(--sun);}
 
 #toast{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);z-index:60;
@@ -254,6 +274,8 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
     <div class="lbl">◀　操作區・左右拖曳　▶</div>
     <div class="rail"></div>
     <div id="padHandle">↔</div>
+    <button id="padL" class="padbtn">◀</button>
+    <button id="padR" class="padbtn">▶</button>
   </div>
 
   <!-- TITLE -->
@@ -270,12 +292,22 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
       <span><span class="sw" style="background:#ffcc33"></span>黃斜坡＝上下騎樓</span>
       <span><span class="sw" style="background:#d94f43"></span>紅線＝過不去</span>
     </div>
+    <div class="opts">
+      <div class="optrow"><span class="optlbl">操作</span>
+        <button class="optbtn" id="optCtrlDrag">拖曳</button>
+        <button class="optbtn" id="optCtrlBtn">左右按鍵</button>
+      </div>
+      <div class="optrow"><span class="optlbl">畫面</span>
+        <button class="optbtn" id="optViewStd">標準</button>
+        <button class="optbtn" id="optViewBig">放大 2×</button>
+      </div>
+    </div>
     <button class="btn" id="btnStart">開始挑戰<span class="en">▶ PRESS START</span></button>
     <div class="row">
       <button class="btn ghost small" id="btnGarage">車庫<span class="en">GARAGE</span></button>
       <button class="btn ghost small" id="btnHow">怎麼玩<span class="en">HOW TO PLAY</span></button>
     </div>
-    <p class="hint">手機：下方黃色區左右拖曳　·　電腦：← →</p>
+    <p class="hint">手機：下方黃色操作區　·　電腦：← →</p>
   </div>
 
   <!-- HOW -->
@@ -390,7 +422,7 @@ const C = {
 const VEHICLES = [
   {id:'manual', name:'手推輪椅',   speed:1.0, w:30,h:40, price:0,   desc:'最基本的一台。慢，但你熟悉它。'},
   {id:'carer',  name:'看護推',     speed:1.25,w:30,h:40, price:120, desc:'有人幫你推，快一點——但路線不是你決定的。'},
-  {id:'blind',  name:'白手杖行人', speed:2.2, w:20,h:24, price:220, desc:'用白手杖步行。轉向最快、身形最小，但看不到來車。'},
+  {id:'blind',  name:'白手杖行人', speed:2.2, w:20,h:24, price:0,   desc:'用白手杖步行。轉向最快、身形最小，但看不到來車。'},
   {id:'power',  name:'電動輪椅',   speed:1.5, w:30,h:40, price:320, desc:'搖桿操作，反應靈敏。重，卡到路緣就真的卡住。'},
   {id:'trike',  name:'三輪電動車', speed:1.8, w:30,h:48, price:650, desc:'跑得快，車身長，鑽騎樓比較吃力。'},
   {id:'head',   name:'電動車頭',   speed:2.1, w:30,h:48, price:1200,desc:'外掛在輪椅前的動力頭。輪上最快的一台。'}
@@ -404,12 +436,13 @@ if(!window.storage){
     async set(k,v){ localStorage.setItem(k, v); }
   };
 }
-let save = {coins:0, best:0, owned:['manual'], current:'manual'};
+let save = {coins:0, best:0, owned:['manual','blind'], current:'manual', ctrl:'drag', big:false};
 async function loadSave(){
   try{
     const r = await window.storage.get('wcgame:save');
     if(r && r.value) save = Object.assign(save, JSON.parse(r.value));
   }catch(e){}
+  if(!save.owned.includes('blind')) save.owned.push('blind');  // 白手杖行人一開始就解鎖（2026-08-12）
 }
 async function writeSave(){
   try{ await window.storage.set('wcgame:save', JSON.stringify(save)); }catch(e){}
@@ -443,48 +476,17 @@ function crashSfx(){
   setTimeout(()=>blip(70,.35,'square',.06),200);
 }
 
-/* ---------- 背景音樂（程序生成 8-bit 循環，無外部音檔） ---------- */
-/* Am–F–C–G 四小節循環，C 大調五聲音階旋律；遊玩中播放，撞擊即停 */
-const BGM_STEP = 60/132/2;   // 132 BPM 八分音符
-const BGM_MEL = [
-  76,0, 79,0, 81,79, 76,74,  72,0, 74,76, 74,0, 69,0,
-  76,0, 79,0, 81,0,  84,0,   81,79, 76,74, 72,74, 76,0
-];
-const BGM_BASS = [
-  45,0, 45,0, 45,0, 52,0,    41,0, 41,0, 41,0, 48,0,
-  48,0, 48,0, 48,0, 43,0,    43,0, 43,0, 43,0, 40,0
-];
-const bgm = {timer:null, next:0, step:0};
-function bgmNote(midi, when, dur, type, vol){
-  const o=AC.createOscillator(), g=AC.createGain();
-  o.type=type; o.frequency.value=440*Math.pow(2,(midi-69)/12);
-  g.gain.setValueAtTime(vol, when);
-  g.gain.exponentialRampToValueAtTime(.0001, when+dur);
-  o.connect(g); g.connect(AC.destination); o.start(when); o.stop(when+dur);
-}
-function bgmTick(){
-  try{
-    if(muted || !AC || AC.state!=='running') return;
-    if(bgm.next < AC.currentTime) bgm.next = AC.currentTime + .05;  // 分頁被節流後跳回現在，避免補播一串
-    while(bgm.next < AC.currentTime + .15){
-      const i = bgm.step % BGM_MEL.length;
-      if(BGM_MEL[i])  bgmNote(BGM_MEL[i],  bgm.next, BGM_STEP*.92, 'square',   .022);
-      if(BGM_BASS[i]) bgmNote(BGM_BASS[i], bgm.next, BGM_STEP*1.8, 'triangle', .045);
-      bgm.next += BGM_STEP; bgm.step++;
-    }
-  }catch(e){}
-}
+/* ---------- 背景音樂（bgm.mp3 循環；遊玩中播放，撞擊即停） ---------- */
+let bgmEl=null;
+try{ bgmEl=new Audio('bgm.mp3'); bgmEl.loop=true; bgmEl.volume=.6; bgmEl.preload='auto'; }catch(e){}
 function startBgm(){
   try{
-    ensureAC();
-    if(bgm.timer) return;
-    bgm.next = AC.currentTime + .1; bgm.step = 0;
-    bgm.timer = setInterval(bgmTick, 50);
+    if(!bgmEl) return;
+    bgmEl.currentTime=0;
+    if(!muted) bgmEl.play().catch(()=>{});
   }catch(e){}
 }
-function stopBgm(){
-  if(bgm.timer){ clearInterval(bgm.timer); bgm.timer = null; }
-}
+function stopBgm(){ try{ if(bgmEl) bgmEl.pause(); }catch(e){} }
 
 /* ══════════════ 遊戲狀態 ══════════════ */
 let state='title';
@@ -615,12 +617,24 @@ function padTo(clientX){
   player.targetX = minPX() + f * (maxPX() - minPX());
 }
 pad.addEventListener('pointerdown', e=>{
-  if(state!=='play') return;
+  if(state!=='play' || save.ctrl==='btn') return;
   padActive=true; pad.setPointerCapture(e.pointerId); padTo(e.clientX);
 });
 pad.addEventListener('pointermove', e=>{ if(padActive && state==='play') padTo(e.clientX); });
 pad.addEventListener('pointerup',   ()=>{ padActive=false; });
 pad.addEventListener('pointercancel',()=>{ padActive=false; });
+
+/* 按鍵操作模式：按住 ◀ ▶ 持續移動（手不方便拖曳的玩家用） */
+let padDir=0;
+for(const [id,d] of [['padL',-1],['padR',1]]){
+  const el = document.getElementById(id);
+  el.addEventListener('pointerdown', e=>{
+    if(state!=='play') return;
+    padDir=d; el.setPointerCapture(e.pointerId); e.stopPropagation();
+  });
+  el.addEventListener('pointerup',    ()=>{ padDir=0; });
+  el.addEventListener('pointercancel',()=>{ padDir=0; });
+}
 
 function pxScale(){ return cvs.getBoundingClientRect().width / W; }
 cvs.addEventListener('pointerdown', e=>{
@@ -665,6 +679,7 @@ function update(dt){
     let dir = 0;
     if(keys.ArrowLeft||keys.a||keys.A) dir=-1;
     if(keys.ArrowRight||keys.d||keys.D) dir=1;
+    if(padDir) dir = padDir;
     player.targetX = player.x + dir*spd*dt*1.7;
   }
   const dx = player.targetX - player.x;
@@ -673,8 +688,10 @@ function update(dt){
   if(Math.abs(nx - (player.x+step)) > 0.1 && chance(.12)) blip(90,.04,'square',.03);
   player.x = nx;
 
-  const f = (player.x - minPX()) / (maxPX() - minPX());
-  padHandle.style.left = `calc(16px + ${(f*100).toFixed(1)}% * ${( (pad.clientWidth-32)/pad.clientWidth ).toFixed(3)})`;
+  if(save.ctrl!=='btn'){
+    const f = (player.x - minPX()) / (maxPX() - minPX());
+    padHandle.style.left = `calc(16px + ${(f*100).toFixed(1)}% * ${( (pad.clientWidth-32)/pad.clientWidth ).toFixed(3)})`;
+  }
 
   cam += scroll*dt;
   while(genY < cam + H + 520) genChunk(false);
@@ -841,6 +858,13 @@ function scaled(x,y,fn){
 
 function draw(){
   ctx.save();
+  if(save.big && (state==='play' || state==='over')){
+    // 放大模式：整個畫面 2x，鏡頭錨定玩家（x 夾在邊界內、玩家放在畫面 72% 高處保留前方視野）
+    const pcx = Math.max(W/4, Math.min(W*3/4, player.x + player.w/2));
+    const pcy = H - PLAYER_Y - player.h/2;
+    ctx.translate(W/2 - 2*pcx, H*.72 - 2*pcy);
+    ctx.scale(2,2);
+  }
   if(shake>0) ctx.translate(Math.round(rnd(-5,5)*shake), Math.round(rnd(-5,5)*shake));
   drawWorld();
   ctx.restore();
@@ -1226,10 +1250,27 @@ $('btnGarageBack').onclick = ()=> show(scTitle);
 $('btnAgain').onclick = ()=> startGame();
 $('btnHome').onclick  = ()=>{ hud.classList.add('hide'); muteBtn.classList.add('hide'); pad.classList.add('hide'); renderGarage(); show(scGarage); };
 $('btnShare').onclick = ()=> shareResult();
-muteBtn.onclick = ()=>{ muted=!muted; muteBtn.textContent = muted?'♪ OFF':'♪ ON'; };
+muteBtn.onclick = ()=>{
+  muted=!muted; muteBtn.textContent = muted?'♪ OFF':'♪ ON';
+  if(bgmEl){ if(muted) bgmEl.pause(); else if(state==='play') bgmEl.play().catch(()=>{}); }
+};
+
+/* ---- 首頁選項：操作方式／放大模式 ---- */
+function renderOpts(){
+  $('optCtrlDrag').classList.toggle('on', save.ctrl!=='btn');
+  $('optCtrlBtn').classList.toggle('on', save.ctrl==='btn');
+  $('optViewStd').classList.toggle('on', !save.big);
+  $('optViewBig').classList.toggle('on', !!save.big);
+  pad.classList.toggle('btnmode', save.ctrl==='btn');
+}
+$('optCtrlDrag').onclick = ()=>{ save.ctrl='drag'; writeSave(); renderOpts(); blip(700,.05); };
+$('optCtrlBtn').onclick  = ()=>{ save.ctrl='btn';  writeSave(); renderOpts(); blip(700,.05); };
+$('optViewStd').onclick  = ()=>{ save.big=false;   writeSave(); renderOpts(); blip(700,.05); };
+$('optViewBig').onclick  = ()=>{ save.big=true;    writeSave(); renderOpts(); blip(700,.05); };
 
 function startGame(){
-  reset(); state='play';
+  reset(); state='play'; padDir=0;
+  renderOpts();
   show(null);
   hud.classList.remove('hide'); muteBtn.classList.remove('hide'); pad.classList.remove('hide');
   blip(660,.07); setTimeout(()=>blip(880,.09),90);
@@ -1407,6 +1448,7 @@ function wrapText(g,text,x,y,maxW,lh){
 /* 啟動 */
 (async ()=>{
   await loadSave();
+  renderOpts();
   reset();
   requestAnimationFrame(loop);
 })();
