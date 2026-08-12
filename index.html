@@ -417,10 +417,18 @@ async function writeSave(){
 
 /* ---------- 音效 ---------- */
 let AC=null, muted=false;
+function ensureAC(){
+  AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended') AC.resume();   // 行動瀏覽器建立後常是 suspended，必須解鎖
+  return AC;
+}
+/* 第一次觸控/按鍵就解鎖音訊（iOS Safari 要在使用者手勢內 resume 才會出聲） */
+addEventListener('pointerdown', ()=>{ try{ensureAC();}catch(e){} }, {once:false});
+addEventListener('keydown',     ()=>{ try{ensureAC();}catch(e){} }, {once:false});
 function blip(freq, dur, type='square', vol=.06){
   if(muted) return;
   try{
-    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    ensureAC();
     const o=AC.createOscillator(), g=AC.createGain();
     o.type=type; o.frequency.value=freq;
     g.gain.setValueAtTime(vol,AC.currentTime);
@@ -433,6 +441,49 @@ function crashSfx(){
   blip(180,.12,'sawtooth',.09);
   setTimeout(()=>blip(110,.22,'sawtooth',.08),90);
   setTimeout(()=>blip(70,.35,'square',.06),200);
+}
+
+/* ---------- 背景音樂（程序生成 8-bit 循環，無外部音檔） ---------- */
+/* Am–F–C–G 四小節循環，C 大調五聲音階旋律；遊玩中播放，撞擊即停 */
+const BGM_STEP = 60/132/2;   // 132 BPM 八分音符
+const BGM_MEL = [
+  76,0, 79,0, 81,79, 76,74,  72,0, 74,76, 74,0, 69,0,
+  76,0, 79,0, 81,0,  84,0,   81,79, 76,74, 72,74, 76,0
+];
+const BGM_BASS = [
+  45,0, 45,0, 45,0, 52,0,    41,0, 41,0, 41,0, 48,0,
+  48,0, 48,0, 48,0, 43,0,    43,0, 43,0, 43,0, 40,0
+];
+const bgm = {timer:null, next:0, step:0};
+function bgmNote(midi, when, dur, type, vol){
+  const o=AC.createOscillator(), g=AC.createGain();
+  o.type=type; o.frequency.value=440*Math.pow(2,(midi-69)/12);
+  g.gain.setValueAtTime(vol, when);
+  g.gain.exponentialRampToValueAtTime(.0001, when+dur);
+  o.connect(g); g.connect(AC.destination); o.start(when); o.stop(when+dur);
+}
+function bgmTick(){
+  try{
+    if(muted || !AC || AC.state!=='running') return;
+    if(bgm.next < AC.currentTime) bgm.next = AC.currentTime + .05;  // 分頁被節流後跳回現在，避免補播一串
+    while(bgm.next < AC.currentTime + .15){
+      const i = bgm.step % BGM_MEL.length;
+      if(BGM_MEL[i])  bgmNote(BGM_MEL[i],  bgm.next, BGM_STEP*.92, 'square',   .022);
+      if(BGM_BASS[i]) bgmNote(BGM_BASS[i], bgm.next, BGM_STEP*1.8, 'triangle', .045);
+      bgm.next += BGM_STEP; bgm.step++;
+    }
+  }catch(e){}
+}
+function startBgm(){
+  try{
+    ensureAC();
+    if(bgm.timer) return;
+    bgm.next = AC.currentTime + .1; bgm.step = 0;
+    bgm.timer = setInterval(bgmTick, 50);
+  }catch(e){}
+}
+function stopBgm(){
+  if(bgm.timer){ clearInterval(bgm.timer); bgm.timer = null; }
 }
 
 /* ══════════════ 遊戲狀態 ══════════════ */
@@ -527,11 +578,16 @@ function genChunk(safe){
     [ROAD_MID+8, Z.road[1]-16],
     [Z.arcR[0]+12, Z.arcR[1]-16]
   ];
-  const ln = lanes[ri(0,3)];
-  const cx = rnd(ln[0], ln[1]);
-  const cn = ri(3,4);
-  for(let i=0;i<cn;i++){
-    coinsArr.push({x:cx+Math.sin(i*.9)*10, y:y0+44+i*38, r:6, got:false});
+  // 金幣加量（2026-08-12 老闆定）：每段 1～2 條金幣串、每串 5～7 枚
+  const li = ri(0,3);
+  const laneIdx = chance(.65) ? [li, (li+ri(1,3))%4] : [li];
+  for(const idx of laneIdx){
+    const ln = lanes[idx];
+    const cx = rnd(ln[0], ln[1]);
+    const cn = ri(5,7);
+    for(let i=0;i<cn;i++){
+      coinsArr.push({x:cx+Math.sin(i*.9)*10, y:y0+30+i*34, r:6, got:false});
+    }
   }
 
   genY += CHUNK;
@@ -629,6 +685,7 @@ function update(dt){
     spawnCar();
   }
   for(const c of cars) c.y += c.vy*dt;
+  trafficFollow();
 
   const cut = cam - 100;
   obstacles = obstacles.filter(o=>o.y+o.h > cut);
@@ -695,6 +752,13 @@ function roadPassable(cand){
     if(o.x+o.w > Z.road[0] && o.x < Z.road[1]) blockers.push({x:o.x,y:o.y,w:o.w,h:o.h,vy:0});
 
   for(const b of blockers){
+    // x 範圍重疊（含 6px 側距）：對向車同一直線遲早互穿→拒生；同向靠 trafficFollow 跟車
+    if(cand.x < b.x+b.w+6 && cand.x+cand.w+6 > b.x){
+      const dy = (b.y + b.h/2) - (cand.y + cand.h/2);
+      const dv = b.vy - cand.vy;
+      if(b.vy * cand.vy < 0 && dy * dv < 0) return false;
+      if(Math.abs(dy) < (b.h + cand.h)/2 + 6) return false;   // 生成瞬間就疊到
+    }
     if(pairGap(cand,b) >= MIN_GAP) continue;
     const dy = (b.y + b.h/2) - (cand.y + cand.h/2);
     const dv = b.vy - cand.vy;
@@ -706,6 +770,28 @@ function roadPassable(cand){
   for(const b of blockers)
     if(b.y < cand.y+cand.h+140 && b.y+b.h > cand.y-140) near.push(b);
   return freeGap(near) >= MIN_GAP;
+}
+/* 同向跟車：後車追上前車（或路上靜物）就降到對方車速，把互穿變成塞車 */
+function trafficFollow(){
+  const bodies = cars.concat(
+    obstacles.filter(o=>o.x+o.w>Z.road[0] && o.x<Z.road[1] && o.kind!=='manhole')
+             .map(o=>({x:o.x,y:o.y,w:o.w,h:o.h,vy:0}))
+  );
+  for(const a of cars){
+    if(!a.vy) continue;
+    const dir = Math.sign(a.vy);
+    for(const b of bodies){
+      if(b===a) continue;
+      if(b.vy * dir < 0) continue;                            // 對向不跟（生成時已拒）
+      if(!(a.x < b.x+b.w+4 && a.x+a.w+4 > b.x)) continue;     // x 沒重疊
+      const gap = dir>0 ? b.y-(a.y+a.h) : a.y-(b.y+b.h);      // 前車距離
+      if(gap < -4 || gap > 16) continue;
+      if((a.vy - b.vy)*dir > 0){
+        a.vy = b.vy;
+        if(gap < 2) a.y = dir>0 ? b.y-a.h-2 : b.y+b.h+2;
+      }
+    }
+  }
 }
 function pairGap(a,b){ return freeGap([a,b]); }
 function freeGap(list){
@@ -738,7 +824,7 @@ const FACTS = [
 
 function die(cause){
   deathCause = cause;
-  state='over'; shake=1; flash=1; crashSfx();
+  state='over'; shake=1; flash=1; stopBgm(); crashSfx();
   if(navigator.vibrate) try{navigator.vibrate([40,60,120]);}catch(e){}
   save.coins += coins;
   if(t > save.best) save.best = t;
@@ -1104,6 +1190,7 @@ function demo(dt){
   carTimer -= dt;
   if(carTimer<=0){ carTimer = rnd(1.8,3.6); spawnCar(); }
   for(const c of cars) c.y += c.vy*dt;
+  trafficFollow();
   const cut = cam-100;
   obstacles = obstacles.filter(o=>o.y+o.h>cut);
   coinsArr  = coinsArr.filter(o=>o.y>cut);
@@ -1146,6 +1233,7 @@ function startGame(){
   show(null);
   hud.classList.remove('hide'); muteBtn.classList.remove('hide'); pad.classList.remove('hide');
   blip(660,.07); setTimeout(()=>blip(880,.09),90);
+  setTimeout(startBgm, 400);   // 開場嗶聲後再進音樂
 }
 
 function showOver(){
