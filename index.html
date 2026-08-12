@@ -423,6 +423,7 @@ const VEHICLES = [
   {id:'manual', name:'手推輪椅',   speed:1.0, w:30,h:40, price:0,   desc:'最基本的一台。慢，但你熟悉它。'},
   {id:'carer',  name:'看護推',     speed:1.25,w:30,h:40, price:120, desc:'有人幫你推，快一點——但路線不是你決定的。'},
   {id:'blind',  name:'白手杖行人', speed:2.2, w:20,h:24, price:0,   desc:'用白手杖步行。轉向最快、身形最小，但看不到來車。'},
+  {id:'guide',  name:'導盲犬領路', speed:2.4, w:22,h:26, price:400, desc:'導盲犬帶路，快而且穩——但牠也擋不了突然出現的違停。'},
   {id:'power',  name:'電動輪椅',   speed:1.5, w:30,h:40, price:320, desc:'搖桿操作，反應靈敏。重，卡到路緣就真的卡住。'},
   {id:'trike',  name:'三輪電動車', speed:1.8, w:30,h:48, price:650, desc:'跑得快，車身長，鑽騎樓比較吃力。'},
   {id:'head',   name:'電動車頭',   speed:2.1, w:30,h:48, price:1200,desc:'外掛在輪椅前的動力頭。輪上最快的一台。'}
@@ -493,14 +494,14 @@ let state='title';
 let cam=0, scroll=112, t=0, coins=0;
 let player, obstacles, cars, coinsArr, kerbL, kerbR, chunks;
 let genY=0, carTimer=0, shake=0, deathCause='', flash=0;
-let particles=[];
+let particles=[], walkers=[], walkerTimer=0;
 
 function vehicle(){ return VEHICLES.find(v=>v.id===save.current) || VEHICLES[0]; }
 
 function reset(){
   cam=0; scroll=112; t=0; coins=0;
-  obstacles=[]; cars=[]; coinsArr=[]; kerbL=[]; kerbR=[]; chunks=[]; particles=[];
-  genY=0; carTimer=3.0; shake=0; flash=0; deathCause='';
+  obstacles=[]; cars=[]; coinsArr=[]; kerbL=[]; kerbR=[]; chunks=[]; particles=[]; walkers=[];
+  genY=0; carTimer=3.0; walkerTimer=4.0; shake=0; flash=0; deathCause='';
   const v = vehicle();
   player={x:ROAD_MID+14, w:v.w, h:v.h, targetX:ROAD_MID+14};
   while(genY < cam + H + 560) genChunk(genY < CHUNK*2);
@@ -568,7 +569,8 @@ function genChunk(safe){
   if(chance(.22 + diff*.20)){
     const kind = pick(['manhole','cone','illegal','illegal']);
     const dim = {manhole:[30,30], cone:[20,24], illegal:[32,52]}[kind];
-    const nearEdge = chance(.6);
+    // 三角錐/違停一律貼路邊，不佔中線——路中央被堵死＝必死局，不公平（2026-08-12）
+    const nearEdge = kind==='manhole' ? chance(.6) : true;
     const x = nearEdge ? (chance(.5) ? Z.road[0]+4 : Z.road[1]-dim[0]-4)
                        : rnd(Z.road[0]+8, Z.road[1]-dim[0]-8);
     obstacles.push(ob(x, y0+rnd(24,CHUNK-76), dim[0], dim[1], kind));
@@ -580,15 +582,26 @@ function genChunk(safe){
     [ROAD_MID+8, Z.road[1]-16],
     [Z.arcR[0]+12, Z.arcR[1]-16]
   ];
-  // 金幣加量（2026-08-12 老闆定）：每段 1～2 條金幣串、每串 5～7 枚
+  // 金幣再加量（2026-08-12）：每段固定 2 條、50% 加第 3 條，每串 6~8 枚
+  // 金幣不生在障礙物上（吃到前先撞死＝實質吃不到），並夾在玩家可達範圍內
+  const coinBlocked = (x,y)=>{
+    for(const o of obstacles){
+      if(x > o.x-8 && x < o.x+o.w+8 && y > o.y-10 && y < o.y+o.h+10) return true;
+    }
+    return false;
+  };
   const li = ri(0,3);
-  const laneIdx = chance(.65) ? [li, (li+ri(1,3))%4] : [li];
-  for(const idx of laneIdx){
+  const laneSet = new Set([li, (li+ri(1,3))%4]);
+  if(chance(.5)) laneSet.add((li+2)%4);
+  for(const idx of laneSet){
     const ln = lanes[idx];
     const cx = rnd(ln[0], ln[1]);
-    const cn = ri(5,7);
+    const cn = ri(6,8);
     for(let i=0;i<cn;i++){
-      coinsArr.push({x:cx+Math.sin(i*.9)*10, y:y0+30+i*34, r:6, got:false});
+      const x = Math.max(28, Math.min(228, cx+Math.sin(i*.9)*10));
+      const y = y0+24+i*30;
+      if(coinBlocked(x,y)) continue;
+      coinsArr.push({x, y, r:6, got:false});
     }
   }
 
@@ -704,6 +717,24 @@ function update(dt){
   for(const c of cars) c.y += c.vy*dt;
   trafficFollow();
 
+  // 路人（撐過 75 秒開始出現，走在騎樓）
+  if(t >= 75){
+    walkerTimer -= dt;
+    if(walkerTimer <= 0){ walkerTimer = rnd(2.4,4.8); spawnWalker(); }
+  }
+  for(const wk of walkers){
+    const ny = wk.y + wk.vy*dt;
+    let blocked = false;
+    for(const o of obstacles){
+      if(wk.x < o.x+o.w+2 && wk.x+wk.w+2 > o.x && ny < o.y+o.h+4 && ny+wk.h+4 > o.y){ blocked=true; break; }
+    }
+    if(!blocked) for(const o of walkers){
+      if(o===wk) continue;
+      if(wk.x < o.x+o.w+2 && wk.x+wk.w+2 > o.x && ny < o.y+o.h+2 && ny+wk.h+2 > o.y){ blocked=true; break; }
+    }
+    if(!blocked) wk.y = ny;
+  }
+
   const cut = cam - 100;
   obstacles = obstacles.filter(o=>o.y+o.h > cut);
   coinsArr  = coinsArr.filter(o=>o.y > cut);
@@ -711,10 +742,12 @@ function update(dt){
   kerbL     = kerbL.filter(s=>s.y+s.h > cut);
   kerbR     = kerbR.filter(s=>s.y+s.h > cut);
   chunks    = chunks.filter(s=>s.y+s.h > cut);
+  walkers   = walkers.filter(w=>w.y+w.h > cut && w.y < cam+H+400);
 
   const P = {x:player.x, y:cam+PLAYER_Y, w:player.w, h:player.h};
   for(const o of obstacles) if(hit(P,o)){ die(nameOf(o.kind)); return; }
   for(const c of cars)      if(hit(P,c)){ die(nameOf(c.kind)); return; }
+  for(const wk of walkers)  if(hit(P,wk)){ die(nameOf('walker')); return; }
 
   for(const c of coinsArr){
     if(c.got) continue;
@@ -732,6 +765,19 @@ function update(dt){
 
   hudTime.querySelector('b').textContent = t.toFixed(1);
   hudCoin.querySelector('b').textContent = coins;
+}
+
+function spawnWalker(){
+  const zone = chance(.5) ? Z.arcL : Z.arcR;
+  const w=16, h=18;
+  const x = rnd(zone[0]+3, zone[1]-w-3);
+  const y = cam + H + rnd(40,160);
+  const vy = (chance(.5)?1:-1) * rnd(24,42);   // 螢幕上永遠往下漂，只差快慢
+  for(const o of obstacles)
+    if(x < o.x+o.w+4 && x+w+4 > o.x && y < o.y+o.h+8 && y+h+8 > o.y) return;
+  for(const o of walkers)
+    if(x < o.x+o.w+4 && x+w+4 > o.x && y < o.y+o.h+8 && y+h+8 > o.y) return;
+  walkers.push({x, y, w, h, vy, seed:Math.random()});
 }
 
 function spawnCar(){
@@ -772,12 +818,19 @@ function roadPassable(cand){
     if(o.x+o.w > Z.road[0] && o.x < Z.road[1]) blockers.push({x:o.x,y:o.y,w:o.w,h:o.h,vy:0});
 
   for(const b of blockers){
-    // x 範圍重疊（含 6px 側距）：對向車同一直線遲早互穿→拒生；同向靠 trafficFollow 跟車
+    // 對向車遲早交會：只要兩車併排時側向淨空 < 38（人過不去）就拒生，距離多遠都一樣
+    // ——否則交會瞬間形成整面牆，玩家反應再快也必死（2026-08-12 必死局修正）
+    if(b.vy * cand.vy < 0){
+      const dy = (b.y + b.h/2) - (cand.y + cand.h/2);
+      const dv = b.vy - cand.vy;
+      if(dy * dv < 0 && pairGap(cand,b) < 38) return false;
+    }
+    // x 範圍重疊（含 6px 側距）：生成瞬間就疊到→拒生；同向靠 trafficFollow 跟車
     if(cand.x < b.x+b.w+6 && cand.x+cand.w+6 > b.x){
       const dy = (b.y + b.h/2) - (cand.y + cand.h/2);
       const dv = b.vy - cand.vy;
-      if(b.vy * cand.vy < 0 && dy * dv < 0) return false;
-      if(Math.abs(dy) < (b.h + cand.h)/2 + 6) return false;   // 生成瞬間就疊到
+      if(dy * dv < 0 && b.vy * cand.vy <= 0) return false;
+      if(Math.abs(dy) < (b.h + cand.h)/2 + 6) return false;
     }
     if(pairGap(cand,b) >= MIN_GAP) continue;
     const dy = (b.y + b.h/2) - (cand.y + cand.h/2);
@@ -828,7 +881,7 @@ const NAMES = {
   moto:'停在騎樓的機車', box:'店家堆的紙箱', plant:'騎樓的盆栽', sign:'立在路上的招牌',
   table:'佔用騎樓的桌椅', pillar:'騎樓柱', steps:'沒有斜坡的台階', shopfront:'外推的店面',
   manhole:'凹陷的人孔蓋', cone:'施工三角錐', illegal:'違停的車',
-  car:'一台轎車', bus:'一台公車', truck:'一台貨車', moto2:'一台機車'
+  car:'一台轎車', bus:'一台公車', truck:'一台貨車', moto2:'一台機車', walker:'路過的行人'
 };
 function nameOf(k){ return NAMES[k] || '障礙物'; }
 
@@ -919,6 +972,13 @@ function drawWorld(){
     if(y>H+80 || y+o.h<-80) continue;
     const X=Math.round(o.x), Y=Math.round(y);
     scaled(X,Y,()=>drawObstacle(o,0,0));
+  }
+
+  for(const wk of walkers){
+    const y = sy(wk.y+wk.h);
+    if(y>H+40 || y+wk.h<-40) continue;
+    const X=Math.round(wk.x), Y=Math.round(y);
+    scaled(X,Y,()=>drawWalker(wk,0,0));
   }
 
   for(const c of cars){
@@ -1120,6 +1180,7 @@ function drawPlayer(x,y,type){
   const w=v.w/2, h=v.h/2;
 
   if(type==='blind'){ drawBlind(x,y,w,h); return; }
+  if(type==='guide'){ drawGuide(x,y,w,h); return; }
 
   const cy = (type==='head'||type==='trike') ? y + (h-20) : y;
   ctx.fillStyle=C.shadow; ctx.fillRect(x+1,y+2,w,h);
@@ -1214,6 +1275,46 @@ function drawBlind(x,y,w,h){
   }
 }
 
+function drawWalker(wk,x,y){
+  // 路人（基準 8×9）：衣色隨 seed，走路擺腿
+  const w=wk.w/2, h=wk.h/2;
+  ctx.fillStyle=C.shadow; ctx.fillRect(x+1,y+1,w,h);
+  const stepP = Math.sin(t*8 + wk.seed*9);
+  const shirts=['#3f7fc8','#c8443f','#3f9b62','#b07d00','#7a6aa0'];
+  ctx.fillStyle='#232733';
+  ctx.fillRect(x+1, y+h-3+(stepP>0?0:1), 2,3);
+  ctx.fillRect(x+5, y+h-3+(stepP>0?1:0), 2,3);
+  ctx.fillStyle=shirts[Math.floor(wk.seed*shirts.length)];
+  ctx.fillRect(x+1,y+3,6,4);
+  ctx.fillStyle=C.skinD; ctx.fillRect(x,y+4,1,2); ctx.fillRect(x+7,y+4,1,2);
+  ctx.fillStyle=C.hair;  ctx.fillRect(x+2,y,4,4);
+  ctx.fillStyle=C.skin;  ctx.fillRect(x+3,y,3,1);
+}
+
+function drawGuide(x,y,w,h){
+  // 導盲犬使用者（基準 11×13）：前左導盲犬＋後右使用者，鞍帶相連
+  ctx.fillStyle=C.shadow; ctx.fillRect(x+1,y+1,w,h);
+  ctx.fillStyle='rgba(20,24,34,.5)'; ctx.fillRect(x-1,y-1,w+2,h+2);
+  const stepP = Math.sin(t*9);
+  // 使用者（後右）
+  ctx.fillStyle='#232733';
+  ctx.fillRect(x+6, y+h-4+(stepP>0?0:2), 2,4);
+  ctx.fillRect(x+9, y+h-4+(stepP>0?2:0), 2,4);
+  ctx.fillStyle='#2e7d4f'; ctx.fillRect(x+5,y+5,6,5);
+  ctx.fillStyle='#3f9b62'; ctx.fillRect(x+6,y+5,4,4);
+  ctx.fillStyle=C.skinD;   ctx.fillRect(x+4,y+6,2,3); ctx.fillRect(x+10,y+6,1,3);
+  ctx.fillStyle=C.hair;    ctx.fillRect(x+6,y+1,4,4);
+  ctx.fillStyle=C.skin;    ctx.fillRect(x+7,y,3,2);
+  // 導盲犬（前左，帶鞍）
+  ctx.fillStyle='#8a6234'; ctx.fillRect(x, y, 4, 8);
+  ctx.fillStyle='#c8955a'; ctx.fillRect(x, y+1, 4, 6);
+  ctx.fillStyle='#6b4a28'; ctx.fillRect(x, y, 2, 2);                       // 頭/耳
+  ctx.fillStyle='#6b4a28'; ctx.fillRect(x+1, y+8+(stepP>0?0:1), 1, 2);     // 前腿
+  ctx.fillStyle='#6b4a28'; ctx.fillRect(x+3, y+8+(stepP>0?1:0), 1, 2);
+  ctx.fillStyle=C.caneBand; ctx.fillRect(x+1, y+3, 3, 2);                  // 導盲鞍
+  ctx.fillStyle='#f6efdc';  ctx.fillRect(x+4, y+4, 2, 1);                  // 鞍柄接到手
+}
+
 /* ══════════════ 標題背景 ══════════════ */
 function demo(dt){
   scroll = 70; cam += scroll*dt;
@@ -1304,7 +1405,8 @@ function renderGarage(){
     const owned = save.owned.includes(v.id);
     const card = document.createElement('div');
     card.className = 'card' + (save.current===v.id?' sel':'') + (owned?'':' lock');
-    const sp = Math.max(1, Math.round(v.speed/2.2*6));
+    const maxSpd = Math.max(...VEHICLES.map(q=>q.speed));
+    const sp = Math.min(6, Math.max(1, Math.round(v.speed/maxSpd*6)));
     const pr = save.current===v.id ? '<span class="tag-use">使用中</span>'
              : owned ? '<span class="tag-own">選用</span>'
              : `<span class="tag-price">◎${v.price}</span><small>你有 ◎${save.coins}</small>`;
