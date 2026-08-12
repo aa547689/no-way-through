@@ -922,7 +922,11 @@ function drawWorld(){
     const y = sy(c.y+c.h);
     if(y>H+180 || y+c.h<-180) continue;
     const X=Math.round(c.x), Y=Math.round(y);
-    scaled(X,Y,()=>drawCar(c,0,0));
+    scaled(X,Y,()=>{
+      // 對向車（往畫面下方開）車頭朝下：sprite 垂直翻轉
+      if(c.vy<0){ ctx.translate(0, c.h/2); ctx.scale(1,-1); }
+      drawCar(c,0,0);
+    });
   }
 
   for(const p of particles){
