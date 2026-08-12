@@ -428,7 +428,7 @@ const C = {
 /* ---------- 角色（世界尺寸＝2x） ---------- */
 const VEHICLES = [
   {id:'manual', name:'手推輪椅',   speed:1.0, w:30,h:40, price:0,   sk:'無特技（基準款）', desc:'最單純的一台，穩穩地走。'},
-  {id:'carer',  name:'看護推',     speed:1.25,w:30,h:40, price:120, sk:'看護救援：每 12 秒擋下一次致命碰撞', desc:'有人幫你推——但路線不是你決定的。'},
+  {id:'carer',  name:'看護推',     speed:1.25,w:30,h:40, price:120, sk:'看護救援：每 12 秒擋下一次致命碰撞', desc:'有人幫你推——增加閃避機會！'},
   {id:'blind',  name:'白手杖行人', speed:2.2, w:20,h:24, price:0,   sk:'吸金範圍最大；但來車靠近才看得見', desc:'用白手杖步行，身形最小。'},
   {id:'guide',  name:'導盲犬領路', speed:2.4, w:22,h:26, price:400, sk:'前方危險紅框預警；吸金範圍加大', desc:'導盲犬帶路，走得快又穩。'},
   {id:'power',  name:'電動輪椅',   speed:1.5, w:30,h:40, price:320, sk:'耐撞 1 次：卡 1 秒不會死；撞路緣卡 0.4 秒', desc:'搖桿操作，反應靈敏但車身重。'},
@@ -747,8 +747,8 @@ function update(dt){
   for(const c of cars) c.y += c.vy*dt;
   trafficFollow();
 
-  // 路人（撐過 75 秒開始出現，走在騎樓）
-  if(t >= 75){
+  // 路人（撐過 30 秒開始出現，走在騎樓）
+  if(t >= 30){
     walkerTimer -= dt;
     if(walkerTimer <= 0){ walkerTimer = rnd(1.3,2.6); spawnWalker(); }
   }
