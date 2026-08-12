@@ -127,6 +127,8 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 .sw{flex:0 0 auto;width:20px;height:20px;border:2px solid var(--ink);display:inline-block;}
 .trans .hint{color:#e9eef4;text-shadow:0 2px 0 rgba(16,20,32,.7);}
 .hint{font-size:20px;color:var(--mut);line-height:1.7;text-align:center;margin-top:2px;font-weight:800;letter-spacing:1px;}
+.credit{font-size:12px;color:var(--mut);opacity:.75;text-align:center;margin-top:8px;font-weight:500;letter-spacing:1px;}
+.trans .credit{color:#c9d2dd;text-shadow:0 1px 0 rgba(16,20,32,.6);}
 
 /* 首頁選項（操作方式／放大模式） */
 .opts{display:flex;flex-direction:column;gap:9px;margin:0 0 14px;}
@@ -219,6 +221,9 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 .spd i.on{background:var(--sun);}
 .spd span{font-size:11px;font-weight:800;color:var(--mut);margin-left:6px;letter-spacing:1px;}
 .card .st{font-size:18px;color:var(--ink2);line-height:1.5;font-weight:500;}
+.card .skl{margin:2px 0 5px;font-size:16px;font-weight:900;color:var(--cone);line-height:1.45;}
+.card .skl i{font-style:normal;background:var(--ink);color:var(--sun);font-size:11px;letter-spacing:2px;
+  padding:3px 6px;margin-right:7px;vertical-align:2px;}
 .card .pr{margin-left:auto;flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px;text-align:right;max-width:76px;}
 .tag-use{background:var(--ink);color:var(--sun);font-size:12px;font-weight:900;letter-spacing:2px;padding:6px 9px;}
 .tag-own{background:var(--paper);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);
@@ -308,6 +313,7 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
       <button class="btn ghost small" id="btnHow">怎麼玩<span class="en">HOW TO PLAY</span></button>
     </div>
     <p class="hint">手機：下方黃色操作區　·　電腦：← →</p>
+    <p class="credit">台灣街頭無障礙像素通勤遊戲　©信如同學 @hiiamhsinju</p>
   </div>
 
   <!-- HOW -->
@@ -371,6 +377,7 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
       <button class="btn ghost small" id="btnShare">分享成績<span class="en">SHARE</span></button>
       <button class="btn ghost small" id="btnHome">車庫／首頁<span class="en">HOME</span></button>
     </div>
+    <p class="credit">©信如同學 @hiiamhsinju</p>
   </div>
 
   <div id="toast"></div>
@@ -420,13 +427,13 @@ const C = {
 
 /* ---------- 角色（世界尺寸＝2x） ---------- */
 const VEHICLES = [
-  {id:'manual', name:'手推輪椅',   speed:1.0, w:30,h:40, price:0,   desc:'最基本的一台。慢，但你熟悉它。'},
-  {id:'carer',  name:'看護推',     speed:1.25,w:30,h:40, price:120, desc:'有人幫你推，快一點——但路線不是你決定的。'},
-  {id:'blind',  name:'白手杖行人', speed:2.2, w:20,h:24, price:0,   desc:'用白手杖步行。轉向最快、身形最小，但看不到來車。'},
-  {id:'guide',  name:'導盲犬領路', speed:2.4, w:22,h:26, price:400, desc:'導盲犬帶路，快而且穩——但牠也擋不了突然出現的違停。'},
-  {id:'power',  name:'電動輪椅',   speed:1.5, w:30,h:40, price:320, desc:'搖桿操作，反應靈敏。重，卡到路緣就真的卡住。'},
-  {id:'trike',  name:'三輪電動車', speed:1.8, w:30,h:48, price:650, desc:'跑得快，車身長，鑽騎樓比較吃力。'},
-  {id:'head',   name:'電動車頭',   speed:2.1, w:30,h:48, price:1200,desc:'外掛在輪椅前的動力頭。輪上最快的一台。'}
+  {id:'manual', name:'手推輪椅',   speed:1.0, w:30,h:40, price:0,   sk:'無特技（基準款）', desc:'最單純的一台，穩穩地走。'},
+  {id:'carer',  name:'看護推',     speed:1.25,w:30,h:40, price:120, sk:'看護救援：每 12 秒擋下一次致命碰撞', desc:'有人幫你推——但路線不是你決定的。'},
+  {id:'blind',  name:'白手杖行人', speed:2.2, w:20,h:24, price:0,   sk:'吸金範圍最大；但來車靠近才看得見', desc:'用白手杖步行，身形最小。'},
+  {id:'guide',  name:'導盲犬領路', speed:2.4, w:22,h:26, price:400, sk:'前方危險紅框預警；吸金範圍加大', desc:'導盲犬帶路，走得快又穩。'},
+  {id:'power',  name:'電動輪椅',   speed:1.5, w:30,h:40, price:320, sk:'耐撞 1 次：卡 1 秒不會死；撞路緣卡 0.4 秒', desc:'搖桿操作，反應靈敏但車身重。'},
+  {id:'trike',  name:'三輪電動車', speed:1.8, w:30,h:48, price:650, sk:'大置物籃：每枚金幣算 2 枚', desc:'跑得快，車身長鑽騎樓吃力。'},
+  {id:'head',   name:'電動車頭',   speed:2.1, w:30,h:48, price:1200,sk:'馬力輾壓：小障礙直接撞飛（短暫減速）', desc:'外掛動力頭，輪上最快。'}
 ];
 
 /* ---------- 存檔 ---------- */
@@ -495,6 +502,8 @@ let cam=0, scroll=112, t=0, coins=0;
 let player, obstacles, cars, coinsArr, kerbL, kerbR, chunks;
 let genY=0, carTimer=0, shake=0, deathCause='', flash=0;
 let particles=[], walkers=[], walkerTimer=0;
+/* 車輛能力狀態（2026-08-12 功能差異化） */
+let invuln=0, stuck=0, slowT=0, powerUsed=false, carerCD=0, kerbStuckCD=0, slip=0;
 
 function vehicle(){ return VEHICLES.find(v=>v.id===save.current) || VEHICLES[0]; }
 
@@ -502,6 +511,7 @@ function reset(){
   cam=0; scroll=112; t=0; coins=0;
   obstacles=[]; cars=[]; coinsArr=[]; kerbL=[]; kerbR=[]; chunks=[]; particles=[]; walkers=[];
   genY=0; carTimer=3.0; walkerTimer=4.0; shake=0; flash=0; deathCause='';
+  invuln=0; stuck=0; slowT=0; powerUsed=false; carerCD=0; kerbStuckCD=0; slip=0;
   const v = vehicle();
   player={x:ROAD_MID+14, w:v.w, h:v.h, targetX:ROAD_MID+14};
   while(genY < cam + H + 560) genChunk(genY < CHUNK*2);
@@ -566,6 +576,10 @@ function genChunk(safe){
     }
   }
 
+  if(chance(.26)){
+    obstacles.push(ob(rnd(Z.road[0]+6, Z.road[1]-32), y0+rnd(30,CHUNK-60), 26, 22, 'oil'));
+  }
+
   if(chance(.22 + diff*.20)){
     const kind = pick(['manhole','cone','illegal','illegal']);
     const dim = {manhole:[30,30], cone:[20,24], illegal:[32,52]}[kind];
@@ -586,6 +600,7 @@ function genChunk(safe){
   // 金幣不生在障礙物上（吃到前先撞死＝實質吃不到），並夾在玩家可達範圍內
   const coinBlocked = (x,y)=>{
     for(const o of obstacles){
+      if(o.kind==='oil') continue;
       if(x > o.x-8 && x < o.x+o.w+8 && y > o.y-10 && y < o.y+o.h+10) return true;
     }
     return false;
@@ -626,7 +641,8 @@ function maxPX(){ return Z.arcR[1]-player.w-2; }
 
 function padTo(clientX){
   const r = pad.getBoundingClientRect();
-  const f = Math.max(0, Math.min(1, (clientX - r.left - 16) / (r.width - 32)));
+  let f = Math.max(0, Math.min(1, (clientX - r.left - 16) / (r.width - 32)));
+  if(slip>0) f = 1 - f;   // 油漬打滑：方向顛倒
   player.targetX = minPX() + f * (maxPX() - minPX());
 }
 pad.addEventListener('pointerdown', e=>{
@@ -656,7 +672,7 @@ cvs.addEventListener('pointerdown', e=>{
 });
 cvs.addEventListener('pointermove', e=>{
   if(state!=='play' || canvasDrag===null) return;
-  const d = (e.clientX - canvasDrag) / pxScale() * 2.2;
+  const d = (e.clientX - canvasDrag) / pxScale() * (slip>0 ? -2.2 : 2.2);
   player.targetX = canvasStartPX + d;
 });
 cvs.addEventListener('pointerup', ()=>{ canvasDrag=null; });
@@ -687,18 +703,32 @@ function update(dt){
   t += dt;
   scroll = 112 + Math.min(180, t*1.9);
 
-  const spd = 165 * vehicle().speed;
+  if(invuln>0) invuln-=dt;
+  if(stuck>0) stuck-=dt;
+  if(slowT>0) slowT-=dt;
+  if(carerCD>0) carerCD-=dt;
+  if(kerbStuckCD>0) kerbStuckCD-=dt;
+  if(slip>0) slip-=dt;
+
+  const spd = 165 * vehicle().speed * (slowT>0 ? .72 : 1) * (stuck>0 ? 0 : 1);
   if(!padActive && canvasDrag===null){
     let dir = 0;
     if(keys.ArrowLeft||keys.a||keys.A) dir=-1;
     if(keys.ArrowRight||keys.d||keys.D) dir=1;
     if(padDir) dir = padDir;
+    if(slip>0) dir = -dir;   // 油漬打滑：方向顛倒
     player.targetX = player.x + dir*spd*dt*1.7;
   }
   const dx = player.targetX - player.x;
   const step = Math.sign(dx)*Math.min(Math.abs(dx), spd*dt);
   const nx = moveX(player.x + step);
-  if(Math.abs(nx - (player.x+step)) > 0.1 && chance(.12)) blip(90,.04,'square',.03);
+  if(Math.abs(nx - (player.x+step)) > 0.1){
+    if(chance(.12)) blip(90,.04,'square',.03);
+    if(vehicle().id==='power' && kerbStuckCD<=0 && Math.abs(step)>0.4){
+      stuck = Math.max(stuck,0.4); kerbStuckCD = 1.6; shake = Math.max(shake,.25);
+      blip(120,.1,'square',.05);
+    }
+  }
   player.x = nx;
 
   if(save.ctrl!=='btn'){
@@ -711,8 +741,8 @@ function update(dt){
 
   carTimer -= dt;
   if(carTimer <= 0){
-    carTimer = Math.max(1.05, 3.4 - t*0.020) * rnd(.8,1.3);
-    spawnCar();
+    carTimer = Math.max(0.62, 2.1 - t*0.022) * rnd(.7,1.15);
+    for(let k=0;k<5;k++) if(spawnCar()) break;   // 被拒生就換參數再試，維持車流密度
   }
   for(const c of cars) c.y += c.vy*dt;
   trafficFollow();
@@ -720,9 +750,17 @@ function update(dt){
   // 路人（撐過 75 秒開始出現，走在騎樓）
   if(t >= 75){
     walkerTimer -= dt;
-    if(walkerTimer <= 0){ walkerTimer = rnd(2.4,4.8); spawnWalker(); }
+    if(walkerTimer <= 0){ walkerTimer = rnd(1.3,2.6); spawnWalker(); }
   }
   for(const wk of walkers){
+    if(wk.type==='couple'){
+      wk.kissT -= dt;
+      if(wk.kissT<=0){ wk.kissing=!wk.kissing; wk.kissT = wk.kissing ? rnd(1.4,2.6) : rnd(2.2,4.4); }
+      if(wk.kissing){
+        if(chance(.05)) particles.push({x:wk.x+wk.w/2+rnd(-5,5), y:wk.y+wk.h+2, vx:rnd(-8,8), vy:rnd(24,50), life:.6, col:'#e85a8a'});
+        continue;   // 親親中：站在原地，擋住兩人寬
+      }
+    }
     const ny = wk.y + wk.vy*dt;
     let blocked = false;
     for(const o of obstacles){
@@ -745,14 +783,24 @@ function update(dt){
   walkers   = walkers.filter(w=>w.y+w.h > cut && w.y < cam+H+400);
 
   const P = {x:player.x, y:cam+PLAYER_Y, w:player.w, h:player.h};
-  for(const o of obstacles) if(hit(P,o)){ die(nameOf(o.kind)); return; }
-  for(const c of cars)      if(hit(P,c)){ die(nameOf(c.kind)); return; }
-  for(const wk of walkers)  if(hit(P,wk)){ die(nameOf('walker')); return; }
+  for(const o of obstacles){
+    if(o.kind!=='oil' || !hit(P,o)) continue;
+    if(slip<=0){ toast('滑到油漬！方向顛倒 3 秒'); blip(340,.18,'sawtooth',.07); setTimeout(()=>blip(240,.14,'sawtooth',.05),80); if(navigator.vibrate) try{navigator.vibrate(60);}catch(e){} }
+    slip = 3;
+  }
+  if(invuln<=0){
+    for(const o of obstacles) if(o.kind!=='oil' && hit(P,o)){ if(!absorbHit(o,false)){ die(nameOf(o.kind)); return; } break; }
+    for(const c of cars)      if(hit(P,c)){ if(!absorbHit(c,true)){  die(nameOf(c.kind)); return; } break; }
+    for(const wk of walkers)  if(hit(P,wk)){ if(!absorbHit(wk,true)){ die(WALKER_NAMES[wk.type]||'路過的行人'); return; } break; }
+  }
 
+  const vid = vehicle().id;
+  const pickX = vid==='blind' ? 30 : vid==='guide' ? 24 : 19;
+  const pickY = vid==='blind' ? 38 : vid==='guide' ? 30 : 25;
   for(const c of coinsArr){
     if(c.got) continue;
-    if(Math.abs(c.x - (P.x+P.w/2)) < 19 && Math.abs(c.y - (P.y+P.h/2)) < 25){
-      c.got=true; coins++; blip(1180,.06,'square',.05);
+    if(Math.abs(c.x - (P.x+P.w/2)) < pickX && Math.abs(c.y - (P.y+P.h/2)) < pickY){
+      c.got=true; coins += (vid==='trike' ? 2 : 1); blip(1180,.06,'square',.05);
       setTimeout(()=>blip(1600,.05,'square',.04),50);
       for(let i=0;i<5;i++) particles.push({x:c.x,y:c.y,vx:rnd(-46,46),vy:rnd(-20,80),life:.4,col:C.coin});
     }
@@ -767,17 +815,22 @@ function update(dt){
   hudCoin.querySelector('b').textContent = coins;
 }
 
+const WALKER_NAMES = {normal:'路過的行人', old:'慢慢走的長輩', couple:'停下來親親的情侶', kid:'跑跳的小朋友'};
 function spawnWalker(){
   const zone = chance(.5) ? Z.arcL : Z.arcR;
-  const w=16, h=18;
+  const type = pick(['normal','normal','old','couple','kid']);
+  const dims = {normal:[16,18], old:[16,18], couple:[30,18], kid:[12,14]}[type];
+  const w=dims[0], h=dims[1];
   const x = rnd(zone[0]+3, zone[1]-w-3);
   const y = cam + H + rnd(40,160);
-  const vy = (chance(.5)?1:-1) * rnd(24,42);   // 螢幕上永遠往下漂，只差快慢
+  const fwd = chance(.45);   // 順向慢行 45%、迎面走下來 55%
+  const spdR = {normal:[[22,40],[34,54]], old:[[8,15],[13,22]], couple:[[18,30],[26,40]], kid:[[46,64],[62,86]]}[type];
+  const vy = fwd ? rnd(spdR[0][0],spdR[0][1]) : -rnd(spdR[1][0],spdR[1][1]);
   for(const o of obstacles)
     if(x < o.x+o.w+4 && x+w+4 > o.x && y < o.y+o.h+8 && y+h+8 > o.y) return;
   for(const o of walkers)
     if(x < o.x+o.w+4 && x+w+4 > o.x && y < o.y+o.h+8 && y+h+8 > o.y) return;
-  walkers.push({x, y, w, h, vy, seed:Math.random()});
+  walkers.push({x, y, w, h, vy, type, kissing:false, kissT:rnd(2,4), seed:Math.random()});
 }
 
 function spawnCar(){
@@ -806,8 +859,9 @@ function spawnCar(){
   }
   if(kind==='moto2' && chance(.22)) x = (vy<0) ? Z.road[0]+3 : Z.road[1]-w-3;
   const cand = {x, y, w, h, vy};
-  if(!roadPassable(cand)) return;
+  if(!roadPassable(cand)) return false;
   cars.push({x, y, w, h, vy, kind, seed:Math.random()});
+  return true;
 }
 
 const MIN_GAP = 42;
@@ -815,15 +869,22 @@ function roadPassable(cand){
   const blockers = [];
   for(const c of cars) blockers.push(c);
   for(const o of obstacles)
-    if(o.x+o.w > Z.road[0] && o.x < Z.road[1]) blockers.push({x:o.x,y:o.y,w:o.w,h:o.h,vy:0});
+    if(o.x+o.w > Z.road[0] && o.x < Z.road[1] && o.kind!=='manhole' && o.kind!=='oil')
+      blockers.push({x:o.x,y:o.y,w:o.w,h:o.h,vy:0});
 
   for(const b of blockers){
-    // 對向車遲早交會：只要兩車併排時側向淨空 < 38（人過不去）就拒生，距離多遠都一樣
-    // ——否則交會瞬間形成整面牆，玩家反應再快也必死（2026-08-12 必死局修正）
+    // 必死局修正 v2（2026-08-12）：對向車交會時若側向淨空 < 38 會形成整面牆——
+    // 但只有「牆掃過玩家附近」才是必死局；交會點離玩家夠遠就放行，維持車流密度
     if(b.vy * cand.vy < 0){
       const dy = (b.y + b.h/2) - (cand.y + cand.h/2);
       const dv = b.vy - cand.vy;
-      if(dy * dv < 0 && pairGap(cand,b) < 38) return false;
+      if(dy * dv < 0 && pairGap(cand,b) < 38){
+        const rel = Math.abs(cand.vy - b.vy);
+        const meetT = Math.abs(dy) / Math.max(1, rel);
+        const wallY = (b.y + b.h/2) + b.vy * meetT;
+        const playerYm = cam + PLAYER_Y + player.h/2 + scroll * meetT;
+        if(Math.abs(wallY - playerYm) < 170) return false;
+      }
     }
     // x 範圍重疊（含 6px 側距）：生成瞬間就疊到→拒生；同向靠 trafficFollow 跟車
     if(cand.x < b.x+b.w+6 && cand.x+cand.w+6 > b.x){
@@ -847,7 +908,7 @@ function roadPassable(cand){
 /* 同向跟車：後車追上前車（或路上靜物）就降到對方車速，把互穿變成塞車 */
 function trafficFollow(){
   const bodies = cars.concat(
-    obstacles.filter(o=>o.x+o.w>Z.road[0] && o.x<Z.road[1] && o.kind!=='manhole')
+    obstacles.filter(o=>o.x+o.w>Z.road[0] && o.x<Z.road[1] && o.kind!=='manhole' && o.kind!=='oil')
              .map(o=>({x:o.x,y:o.y,w:o.w,h:o.h,vy:0}))
   );
   for(const a of cars){
@@ -894,6 +955,52 @@ const FACTS = [
   '<b>導盲磚</b>常被機車、花台、電線桿打斷——對白手杖使用者，斷掉的導盲磚等於斷掉的路。',
   '無障礙不是替少數人多做的事——推嬰兒車、拉行李箱、拄拐杖的人，走的是同一條路。'
 ];
+
+/* 車輛能力：致命碰撞攔截。回傳 true = 這次不死 */
+function absorbHit(ent, moving){
+  const id = vehicle().id;
+  // 電動車頭：輾飛小物件
+  if(id==='head' && !moving && ['cone','box','plant','sign'].includes(ent.kind)){
+    obstacles = obstacles.filter(o=>o!==ent);
+    for(let i=0;i<10;i++) particles.push({x:ent.x+ent.w/2, y:ent.y+ent.h/2, vx:rnd(-90,90), vy:rnd(-30,140), life:.5, col:'#b0a27e'});
+    slowT = .6; shake = Math.max(shake,.3);
+    blip(200,.1,'sawtooth',.07); setTimeout(()=>blip(150,.08,'sawtooth',.05),60);
+    return true;
+  }
+  // 看護推：看護拉你一把（冷卻 12 秒）
+  if(id==='carer' && carerCD<=0){
+    const py0 = cam+PLAYER_Y, py1 = py0+player.h;
+    for(const off of [-40,40,-56,56,-72,72]){
+      let nx = player.x + off;
+      if(nx < minPX() || nx > maxPX()) continue;
+      const cand = {x:nx, y:py0, w:player.w, h:player.h};
+      let clear = true;
+      for(const o of obstacles) if(hit(cand,o)){ clear=false; break; }
+      if(clear) for(const c of cars) if(hit(cand,c)){ clear=false; break; }
+      // 不能隔著封閉路緣被拉過去
+      if(clear){
+        const lo = Math.min(player.x,nx), hi = Math.max(player.x,nx)+player.w;
+        if(lo < Z.kerbL[1] && hi > Z.kerbL[0] && kerbBlocked(kerbL,py0,py1)) clear=false;
+        if(lo < Z.kerbR[1] && hi > Z.kerbR[0] && kerbBlocked(kerbR,py0,py1)) clear=false;
+      }
+      if(clear){
+        player.x = player.targetX = nx;
+        carerCD = 12; invuln = .9; shake = Math.max(shake,.4);
+        toast('看護拉了你一把！（冷卻 12 秒）');
+        blip(880,.08); setTimeout(()=>blip(660,.08),70);
+        return true;
+      }
+    }
+  }
+  // 電動輪椅：每局硬吃一次碰撞，卡住 1 秒
+  if(id==='power' && !powerUsed){
+    powerUsed = true; stuck = 1.0; invuln = 1.6; shake = Math.max(shake,.6);
+    toast('卡住了——但你還在！（本局限一次）');
+    crashSfx();
+    return true;
+  }
+  return false;
+}
 
 function die(cause){
   deathCause = cause;
@@ -981,15 +1088,41 @@ function drawWorld(){
     scaled(X,Y,()=>drawWalker(wk,0,0));
   }
 
+  const pid = (state==='play'||state==='over') ? vehicle().id : '';
   for(const c of cars){
     const y = sy(c.y+c.h);
     if(y>H+180 || y+c.h<-180) continue;
     const X=Math.round(c.x), Y=Math.round(y);
+    // 白手杖行人：看不到來車——靠近了才漸漸浮現
+    let alpha = 1;
+    if(pid==='blind' && state==='play'){
+      const d = Math.abs((c.y+c.h/2) - (cam+PLAYER_Y+player.h/2));
+      alpha = Math.max(0, Math.min(1, (185-d)/55));
+      if(alpha<=0) continue;
+    }
+    ctx.save(); ctx.globalAlpha = alpha;
     scaled(X,Y,()=>{
       // 對向車（往畫面下方開）車頭朝下：sprite 垂直翻轉
       if(c.vy<0){ ctx.translate(0, c.h/2); ctx.scale(1,-1); }
       drawCar(c,0,0);
     });
+    ctx.restore();
+  }
+
+  // 導盲犬：前方危險紅框預警（車輛＋路上障礙，玩家行進走廊內）
+  if(pid==='guide' && state==='play' && Math.sin(t*10)>-0.2){
+    const py = cam+PLAYER_Y;
+    const warn = [];
+    for(const c of cars) if(c.y > py+30 && c.y < py+190 && c.x < player.x+player.w+26 && c.x+c.w > player.x-26) warn.push(c);
+    for(const o of obstacles) if(o.y > py+30 && o.y < py+170 && o.x < player.x+player.w+26 && o.x+o.w > player.x-26) warn.push(o);
+    for(const wk of walkers) if(wk.y > py+30 && wk.y < py+170 && wk.x < player.x+player.w+26 && wk.x+wk.w > player.x-26) warn.push(wk);
+    ctx.strokeStyle = C.blood; ctx.lineWidth = 2;
+    for(const e of warn){
+      const ey = sy(e.y+e.h);
+      ctx.strokeRect(Math.round(e.x)-3, Math.round(ey)-3, e.w+6, e.h+6);
+      ctx.fillStyle = C.blood;
+      ctx.fillRect(Math.round(e.x)+e.w/2-1, Math.round(ey)-10, 3, 5);
+    }
   }
 
   for(const p of particles){
@@ -997,8 +1130,15 @@ function drawWorld(){
   }
 
   if(state!=='over' || flash>.15){
-    const X=Math.round(player.x), Y=Math.round(sy(cam+PLAYER_Y+player.h));
-    scaled(X,Y,()=>drawPlayer(0,0,vehicle().id));
+    if(!(invuln>0 && Math.floor(t*14)%2===0)){   // 無敵時間閃爍
+      const X=Math.round(player.x), Y=Math.round(sy(cam+PLAYER_Y+player.h));
+      scaled(X,Y,()=>drawPlayer(0,0,vehicle().id));
+    }
+    if(slip>0 && state==='play'){   // 打滑警示「！」
+      const wx = Math.round(player.x + player.w/2), wy = Math.round(sy(cam+PLAYER_Y+player.h)) - 16 + Math.round(Math.sin(t*10)*2);
+      ctx.fillStyle=C.blood; ctx.fillRect(wx-6, wy-8, 12, 14);
+      ctx.fillStyle='#fff';  ctx.fillRect(wx-1, wy-5, 3, 6); ctx.fillRect(wx-1, wy+3, 3, 2);
+    }
   }
 }
 
@@ -1105,6 +1245,13 @@ function drawObstacle(o,x,y){
       ctx.fillStyle='#5d6a80'; ctx.fillRect(x+1,y+1,w-2,h-2);
       ctx.fillStyle=C.signRed; ctx.fillRect(x+2,y+3,w-4,5);
       ctx.fillStyle=C.sign;    ctx.fillRect(x+4,y+5,w-8,1);
+      break;
+    case 'oil': // 13x11 油漬（不致死，踩到打滑）
+      ctx.fillStyle='rgba(30,32,42,.28)'; ctx.fillRect(x+1,y+1,w,h);
+      ctx.fillStyle='#2a2d38'; ctx.fillRect(x+1,y,w-2,h); ctx.fillRect(x,y+2,w,h-4);
+      ctx.fillStyle='#3a3f52'; ctx.fillRect(x+2,y+2,w-5,h-5);
+      ctx.fillStyle='#5a4f8a'; ctx.fillRect(x+3,y+3,3,2);
+      ctx.fillStyle='#3f7a6a'; ctx.fillRect(x+w-6,y+h-5,3,2);
       break;
     case 'manhole': // 15x15
       ctx.fillStyle='#5d6370'; ctx.fillRect(x,y,w,h);
@@ -1276,19 +1423,53 @@ function drawBlind(x,y,w,h){
 }
 
 function drawWalker(wk,x,y){
-  // 路人（基準 8×9）：衣色隨 seed，走路擺腿
   const w=wk.w/2, h=wk.h/2;
   ctx.fillStyle=C.shadow; ctx.fillRect(x+1,y+1,w,h);
-  const stepP = Math.sin(t*8 + wk.seed*9);
   const shirts=['#3f7fc8','#c8443f','#3f9b62','#b07d00','#7a6aa0'];
-  ctx.fillStyle='#232733';
-  ctx.fillRect(x+1, y+h-3+(stepP>0?0:1), 2,3);
-  ctx.fillRect(x+5, y+h-3+(stepP>0?1:0), 2,3);
-  ctx.fillStyle=shirts[Math.floor(wk.seed*shirts.length)];
-  ctx.fillRect(x+1,y+3,6,4);
-  ctx.fillStyle=C.skinD; ctx.fillRect(x,y+4,1,2); ctx.fillRect(x+7,y+4,1,2);
-  ctx.fillStyle=C.hair;  ctx.fillRect(x+2,y,4,4);
-  ctx.fillStyle=C.skin;  ctx.fillRect(x+3,y,3,1);
+  if(wk.type==='old'){                                    // 老人：灰髮、拐杖、慢步
+    const stepP = Math.sin(t*4 + wk.seed*9);
+    ctx.fillStyle='#232733';
+    ctx.fillRect(x+1, y+h-3+(stepP>0?0:1), 2,3);
+    ctx.fillRect(x+5, y+h-3+(stepP>0?1:0), 2,3);
+    ctx.fillStyle='#6d6752'; ctx.fillRect(x+1,y+3,6,4);
+    ctx.fillStyle=C.skinD; ctx.fillRect(x,y+4,1,2); ctx.fillRect(x+7,y+4,1,2);
+    ctx.fillStyle='#c9c9c9'; ctx.fillRect(x+2,y,4,4);
+    ctx.fillStyle='#8a6234'; ctx.fillRect(x+8,y+3,1,5);
+  }else if(wk.type==='kid'){                              // 小朋友：小隻、亮衣、快步
+    const stepP = Math.sin(t*13 + wk.seed*9);
+    ctx.fillStyle='#232733';
+    ctx.fillRect(x+1, y+h-2+(stepP>0?0:1), 1,2);
+    ctx.fillRect(x+4, y+h-2+(stepP>0?1:0), 1,2);
+    ctx.fillStyle=wk.seed>.5?'#e8551f':'#3f9b62'; ctx.fillRect(x+1,y+2,4,3);
+    ctx.fillStyle=C.hair; ctx.fillRect(x+1,y,3,2);
+    ctx.fillStyle=C.skin; ctx.fillRect(x+2,y,2,1);
+  }else if(wk.type==='couple'){                           // 情侶：兩人並肩，親親時靠頭＋愛心
+    const stepP = wk.kissing ? 0 : Math.sin(t*8 + wk.seed*9);
+    ctx.fillStyle='#232733';
+    ctx.fillRect(x+2, y+h-3+(stepP>0?0:1), 2,3); ctx.fillRect(x+5, y+h-3+(stepP>0?1:0), 2,3);
+    ctx.fillRect(x+9, y+h-3+(stepP>0?1:0), 2,3); ctx.fillRect(x+12, y+h-3+(stepP>0?0:1), 2,3);
+    ctx.fillStyle='#c85a8a'; ctx.fillRect(x+1,y+3,6,4);
+    ctx.fillStyle='#3f7fc8'; ctx.fillRect(x+8,y+3,6,4);
+    ctx.fillStyle=C.skinD; ctx.fillRect(x,y+4,1,2); ctx.fillRect(x+14,y+4,1,2);
+    const lean = wk.kissing ? 1 : 0;
+    ctx.fillStyle=C.hair;
+    ctx.fillRect(x+2+lean, y, 4,4); ctx.fillRect(x+9-lean, y, 4,4);
+    if(wk.kissing){
+      const bob = Math.sin(t*6)>0 ? 0 : 1;
+      ctx.fillStyle='#e85a8a';
+      ctx.fillRect(x+6, y-4-bob, 2,2); ctx.fillRect(x+9, y-4-bob, 2,2); ctx.fillRect(x+7, y-2-bob, 3,2);
+    }
+  }else{                                                  // 一般路人
+    const stepP = Math.sin(t*8 + wk.seed*9);
+    ctx.fillStyle='#232733';
+    ctx.fillRect(x+1, y+h-3+(stepP>0?0:1), 2,3);
+    ctx.fillRect(x+5, y+h-3+(stepP>0?1:0), 2,3);
+    ctx.fillStyle=shirts[Math.floor(wk.seed*shirts.length)];
+    ctx.fillRect(x+1,y+3,6,4);
+    ctx.fillStyle=C.skinD; ctx.fillRect(x,y+4,1,2); ctx.fillRect(x+7,y+4,1,2);
+    ctx.fillStyle=C.hair;  ctx.fillRect(x+2,y,4,4);
+    ctx.fillStyle=C.skin;  ctx.fillRect(x+3,y,3,1);
+  }
 }
 
 function drawGuide(x,y,w,h){
@@ -1415,6 +1596,7 @@ function renderGarage(){
       <div class="info">
         <div class="nm">${v.name}${v.id==='blind'?'<em class="mini">體積小</em>':''}</div>
         <div class="spd">${'<i class="on"></i>'.repeat(sp)}${'<i></i>'.repeat(6-sp)}<span>速度 ${v.speed.toFixed(2)}</span></div>
+        <div class="skl"><i>特技</i>${v.sk}</div>
         <div class="st">${v.desc}</div>
       </div>
       <div class="pr">${pr}</div>`;
@@ -1528,7 +1710,11 @@ async function shareResult(){
   g.fillStyle='#f2b705'; g.font='900 34px '+ZH;
   g.fillText('#騎樓沒有路　#無障礙', 64, h-146);
   g.fillStyle='#9aa3b5'; g.font='700 24px '+ZH;
-  g.fillText('台灣街頭像素通勤遊戲 · NO WAY THROUGH', 64, h-88);
+  g.fillText('台灣街頭無障礙像素通勤遊戲 · NO WAY THROUGH', 64, h-88);
+  g.textAlign='right';
+  g.fillStyle='#6d7688'; g.font='500 22px '+ZH;
+  g.fillText('© 信如同學 @hiiamhsinju', w-64, h-88);
+  g.textAlign='left';
 
   ex.toBlob(async b=>{
     const file = new File([b],'no-way-through.png',{type:'image/png'});
