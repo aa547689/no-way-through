@@ -27,12 +27,17 @@ a{color:var(--cone);} a:hover{color:var(--blood);}
 #stage{
   position:relative;
   height:100dvh; width:100vw;
-  max-width:calc(100dvh * 256 / 456);
-  max-height:calc(100vw * 456 / 256);
-  aspect-ratio:256/456;
   background:#000;
   overflow:hidden;
-  box-shadow:0 0 0 3px #232733, 0 24px 60px rgba(20,30,40,.35);
+}
+/* 視窗比例比 256:456 寬（桌機/橫向）→ 維持比例框置中；更窄長（手機直向）→ 滿版 */
+@media (min-aspect-ratio: 256/456){
+  #stage{
+    max-width:calc(100dvh * 256 / 456);
+    max-height:calc(100vw * 456 / 256);
+    aspect-ratio:256/456;
+    box-shadow:0 0 0 3px #232733, 0 24px 60px rgba(20,30,40,.35);
+  }
 }
 canvas#game{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;display:block;}
 #scan{position:absolute;inset:0;pointer-events:none;z-index:40;background:repeating-linear-gradient(to bottom,rgba(30,40,60,.10) 0 1px,rgba(0,0,0,0) 1px 3px);opacity:.5;}
@@ -92,7 +97,7 @@ canvas#game{position:absolute;inset:0;width:100%;height:100%;image-rendering:pix
 .screen{
   position:absolute;inset:0;z-index:35;
   display:flex;flex-direction:column;
-  padding:24px 20px 20px;
+  padding:16px 16px 14px;
   overflow-y:auto;
   background:
     repeating-linear-gradient(0deg, rgba(35,39,51,.05) 0 2px, transparent 2px 44px),
@@ -112,46 +117,46 @@ canvas#game{position:absolute;inset:0;width:100%;height:100%;image-rendering:pix
 
 /* title */
 .signboard{background:var(--sunL);border:5px solid var(--ink);box-shadow:9px 9px 0 rgba(24,28,40,.82);
-  padding:22px 18px 18px;position:relative;margin-bottom:14px;}
+  padding:15px 16px 13px;position:relative;margin-bottom:10px;}
 .signboard .bolt{position:absolute;width:11px;height:11px;background:var(--blood);border:3px solid var(--ink);}
 .bolt.tl{top:7px;left:7px;} .bolt.tr{top:7px;right:7px;} .bolt.bl{bottom:7px;left:7px;} .bolt.br{bottom:7px;right:7px;}
-h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(--ink);white-space:nowrap;}
-.t-en{display:inline-block;font-family:"Press Start 2P",monospace;font-size:12px;color:var(--sun);
-  background:var(--ink);padding:9px 10px;margin-top:13px;letter-spacing:1px;}
+h1{font-size:36px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(--ink);white-space:nowrap;}
+.t-en{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;color:var(--sun);
+  background:var(--ink);padding:7px 9px;margin-top:9px;letter-spacing:1px;}
 .t-lead{background:rgba(253,251,244,.95);border:3px solid var(--ink);box-shadow:5px 5px 0 rgba(24,28,40,.55);
-  padding:12px 14px;font-size:26px;line-height:1.7;font-weight:700;color:var(--ink2);}
+  padding:10px 12px;font-size:18px;line-height:1.6;font-weight:700;color:var(--ink2);}
 .t-lead b{color:var(--ink);}
-.legend{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap;}
+.legend{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap;}
 .legend span{display:flex;align-items:center;gap:7px;background:rgba(253,251,244,.95);
-  border:3px solid var(--ink);box-shadow:3px 3px 0 rgba(24,28,40,.5);padding:7px 9px;font-size:20px;font-weight:900;}
-.sw{flex:0 0 auto;width:20px;height:20px;border:2px solid var(--ink);display:inline-block;}
+  border:3px solid var(--ink);box-shadow:3px 3px 0 rgba(24,28,40,.5);padding:6px 8px;font-size:15px;font-weight:900;}
+.sw{flex:0 0 auto;width:16px;height:16px;border:2px solid var(--ink);display:inline-block;}
 .trans .hint{color:#e9eef4;text-shadow:0 2px 0 rgba(16,20,32,.7);}
-.hint{font-size:20px;color:var(--mut);line-height:1.7;text-align:center;margin-top:2px;font-weight:800;letter-spacing:1px;}
-.credit{font-size:12px;color:var(--mut);opacity:.75;text-align:center;margin-top:8px;font-weight:500;letter-spacing:1px;}
+.hint{font-size:13px;color:var(--mut);line-height:1.6;text-align:center;margin-top:2px;font-weight:800;letter-spacing:1px;}
+.credit{font-size:10px;color:var(--mut);opacity:.75;text-align:center;margin-top:6px;font-weight:500;letter-spacing:1px;}
 .trans .credit{color:#c9d2dd;text-shadow:0 1px 0 rgba(16,20,32,.6);}
 
 /* 首頁選項（操作方式／放大模式） */
-.opts{display:flex;flex-direction:column;gap:9px;margin:0 0 14px;}
+.opts{display:flex;flex-direction:column;gap:7px;margin:0 0 10px;}
 .optrow{display:flex;align-items:stretch;gap:9px;}
 .optlbl{flex:0 0 auto;display:flex;align-items:center;background:var(--ink);color:var(--paper);
-  font-size:17px;font-weight:900;letter-spacing:3px;padding:0 11px;box-shadow:3px 3px 0 rgba(24,28,40,.5);}
+  font-size:14px;font-weight:900;letter-spacing:3px;padding:0 9px;box-shadow:3px 3px 0 rgba(24,28,40,.5);}
 .optbtn{flex:1;background:rgba(253,251,244,.92);border:3px solid var(--ink);box-shadow:0 4px 0 rgba(24,28,40,.55);
-  font-family:inherit;font-size:18px;font-weight:900;letter-spacing:2px;padding:11px 4px;cursor:pointer;color:var(--mut);}
+  font-family:inherit;font-size:15px;font-weight:900;letter-spacing:2px;padding:9px 4px;cursor:pointer;color:var(--mut);}
 .optbtn.on{background:var(--sun);color:var(--ink);box-shadow:0 4px 0 var(--ink);}
 .optbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);}
 
 /* buttons */
 .btn{
-  display:block;width:100%;padding:17px 12px 15px;margin-bottom:16px;
+  display:block;width:100%;padding:13px 12px 11px;margin-bottom:11px;
   background:var(--sun);color:var(--ink);border:4px solid var(--ink);box-shadow:0 7px 0 var(--ink);
-  cursor:pointer;font-family:inherit;font-size:21px;font-weight:900;letter-spacing:9px;text-indent:9px;
+  cursor:pointer;font-family:inherit;font-size:19px;font-weight:900;letter-spacing:9px;text-indent:9px;
 }
-.btn .en{display:block;font-size:9px;letter-spacing:2px;margin-top:8px;color:rgba(35,39,51,.55);text-indent:0;}
+.btn .en{display:block;font-size:8px;letter-spacing:2px;margin-top:6px;color:rgba(35,39,51,.55);text-indent:0;}
 .btn:active{transform:translateY(5px);box-shadow:0 2px 0 var(--ink);}
 .btn.ghost{background:var(--paper);}
-.btn.small{font-size:15px;letter-spacing:4px;text-indent:4px;padding:13px 8px 11px;}
+.btn.small{font-size:13px;letter-spacing:3px;text-indent:3px;padding:10px 6px 9px;}
 .btn.small .en{font-size:8px;margin-top:6px;}
-.row{display:flex;gap:12px;margin-bottom:14px;}
+.row{display:flex;gap:8px;margin-bottom:10px;}
 .row .btn{margin-bottom:0;}
 
 /* how to play */
@@ -434,12 +439,21 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
 /* ══════════════════════════════════════════════════════════
    騎樓沒有路 v0.3 — 物件放大一倍（sprite 以 2x 縮放繪製）
    ══════════════════════════════════════════════════════════ */
-const W = 256, H = 456;
+const W = 256; let H = 456;   // H 依裝置比例動態調整（手機滿版）
 const cvs = document.getElementById('game');
 const MAIN = cvs.getContext('2d');
 let ctx = MAIN;
 function useCtx(c){ ctx = c; }
 cvs.width = W; cvs.height = H; MAIN.imageSmoothingEnabled = false;
+/* 依舞台實際比例調整邏輯高度：手機滿版不留黑邊、像素保持方正 */
+function fitCanvas(){
+  const r = cvs.getBoundingClientRect();
+  if(!r.width || !r.height) return;
+  const nh = Math.max(456, Math.min(760, Math.round(W * r.height / r.width)));
+  if(nh !== H){ H = nh; cvs.height = H; MAIN.imageSmoothingEnabled = false; }
+}
+let fitT = null;
+addEventListener('resize', ()=>{ clearTimeout(fitT); fitT = setTimeout(fitCanvas, 150); });
 
 /* ---------- 地圖分區（視野縮窄、物件加倍） ---------- */
 const Z = {
@@ -1865,6 +1879,7 @@ function wrapText(g,text,x,y,maxW,lh){
 (async ()=>{
   await loadSave();
   renderOpts();
+  fitCanvas();
   reset();
   requestAnimationFrame(loop);
 })();
