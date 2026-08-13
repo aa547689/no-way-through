@@ -334,7 +334,8 @@ h1{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.1;color:var(-
     <button class="btn" id="btnStart">開始挑戰<span class="en">▶ PRESS START</span></button>
     <div class="row">
       <button class="btn ghost small" id="btnGarage">車庫<span class="en">GARAGE</span></button>
-      <button class="btn ghost small" id="btnHow">怎麼玩<span class="en">HOW TO PLAY</span></button>
+      <button class="btn ghost small" id="btnHow">怎麼玩<span class="en">HOW TO</span></button>
+      <button class="btn ghost small" id="btnRanking">排行榜<span class="en">RANKING</span></button>
     </div>
     <p class="hint">手機：下方黃色操作區　·　電腦：← →</p>
     <p class="credit">台灣街頭無障礙像素通勤遊戲　©信如同學 @hiiamhsinju</p>
@@ -1606,6 +1607,10 @@ $('btnUpload').onclick = ()=>{
   $('lbNameInput').value = save.pname || '';
   lbShow('name');
   $('lbModal').classList.remove('hide');
+};
+$('btnRanking').onclick = ()=>{
+  if(LB_API.indexOf('http') !== 0){ toast('排行榜準備中，晚點再來！'); return; }
+  lbOpenBoard();
 };
 $('lbCancel').onclick = ()=> $('lbModal').classList.add('hide');
 $('lbClose').onclick  = ()=> $('lbModal').classList.add('hide');
